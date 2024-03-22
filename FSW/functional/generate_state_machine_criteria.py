@@ -122,7 +122,7 @@ def _battery_callback(msg: BatteryState):
     global _low_battery
     
     rospy.logdebug("State machine criteria generator saved a battery state")
-    _low_battery = (msg.charge / msg.capacity) <= BATTERY_LOW_CHARGE_PCT_CUTOFF
+    _low_battery = msg.percentage <= BATTERY_LOW_CHARGE_PCT_CUTOFF
         
 
 def setup():

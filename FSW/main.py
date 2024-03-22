@@ -41,5 +41,5 @@ process_bluetooth.setup()
 rate = rospy.Rate(3)
 now = rospy.Time.now()
 while not rospy.is_shutdown():
-    estimate_rgv_state.estimate_rgv_state()
+    estimate_rgv_state.publish_estimated_rgv_state()
     rate.sleep()
