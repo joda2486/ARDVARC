@@ -3,7 +3,8 @@ import rospy
 from ..config.topic_names import ESTIMATED_RGV_STATES, RGV_PROJECTIONS
 from..config.constants import RGV_ID, MEAS_FROM_BLUETOOTH, MEAS_FROM_CAMERA, SPEED_THRESHOLD, \
     BLUETOOTH_WEIGHT, CAMERA_WEIGHT, MAX_PLAUSIBLE_RGV_SPEED, MISSION_AREA_HALF_WIDTH, \
-    ORBITAL_RADIUS_SINGLE, ESTIMATE_HISTORY_DURATION, MAX_BLIND_FOLLOW_DURATION
+    ORBITAL_RADIUS_SINGLE, ESTIMATE_HISTORY_DURATION, MAX_BLIND_FOLLOW_DURATION, \
+    IDEAL_TOTAL_WEIGHT
 from rosardvarc.msg import RgvLocalProjection, EstimatedRgvState
 from typing import Tuple
 import numpy as np
@@ -152,7 +153,7 @@ def _update_estimate(rgv_estimate: SingleRgvEstimate,
                      camera_buffer: SortedBuffer[RgvLocalProjection],
                      new_rgv_projection: bool):
     # Calculate confidence based on number of data points
-    rgv_estimate.confidence = (BLUETOOTH_WEIGHT * len(bluetooth_buffer) + CAMERA_WEIGHT * len(camera_buffer))/200
+    rgv_estimate.confidence = (BLUETOOTH_WEIGHT * len(bluetooth_buffer) + CAMERA_WEIGHT * len(camera_buffer))/IDEAL_TOTAL_WEIGHT
     if rgv_estimate.confidence > 1:
         rgv_estimate.confidence = 1
     
