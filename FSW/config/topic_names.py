@@ -12,7 +12,7 @@ STATE_MACHINE_CRITERIA = "state_machine/state_machine_criteria"
 SETPOINTS = "pixhawk/setpoints"
 REGIONS_OF_INTEREST = "pixhawk/regions_of_interest"
 
-BATTERY = "mavros/sys_status/battery"
+BATTERY = "mavros/battery"
 
 UAS_ARMING_STATE = "mavros/state"
 UAS_SETPOINT_LOCAL = "mavros/setpoint_position/local"
