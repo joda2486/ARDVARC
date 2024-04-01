@@ -15,7 +15,7 @@ Notes:
     TODO MVP (TB 2021-09-20: MVP Complete)
     TODO Clean out old code after a review and unit testing
     TODO Get rid of possible appends
-    TODO Create a camera calibration function using the aruco markers
+    TODO Create a camera calibration function using the aruco markers(TB - SHould be in a new issue #108)
     TODO Figure out UAS frame to inertial frame transition
     TODO Output direction vector as a unit/pointing vector
     TODO List of tuples
@@ -41,19 +41,15 @@ from typing import Optional, List
 class DetectionInfo():
     ##TODO Combine the IDS and Dir Vecs into a list of tuples
     annotated_camera_frame: cv2.typing.MatLike
-    ids: List[int]
-    #ROS Version
+    rgv_ids: List[constants.RGV_ID]
     direction_vectors: List[np.ndarray]
-    
-    #Windows Unit Test Version
-    #direction_vector: List
     
 
 
 ## Function to detect ArUco markers
 def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo: 
     direction_vectors: List[np.ndarray] = []
-    ids_list: List[int] = []
+    ids_list: List[constants.RGV_ID] = []
     frame_copy = frame.copy()
 
     for aruco_type, dictionary_id in constants.ARUCO_DICT.items():
@@ -69,11 +65,7 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
         if len(corners) > 0:
             ## TODO (TB) Wipe this before Final FSW\/
             rospy.logdebug(f"Detected {aruco_type} ArUco markers")
-            """ 
-            Not Sure I wanna keep this yet, depending on how I want to store the ids
-            # flatten the ArUco IDs list
-            ids = ids.flatten()
-            """
+
             # loop over the detected ArUCo corners
             for (markerCorner, markerID) in zip(corners, ids.flatten().tolist()):
                 # extract the marker corners (which are always returned in
@@ -81,6 +73,10 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
                 corners_reshaped = markerCorner.reshape((4, 2))
                 (topLeft, topRight, bottomRight, bottomLeft) = corners_reshaped
                 # convert each of the (x, y)-coordinate pairs to integers
+
+                ## Tag Listing Code 
+                # print(f"Detected {aruco_type} {markerID}")
+                ##
 
                 ###### Unnecessary Code ######
                 """
@@ -119,19 +115,25 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
 
                 
 
-            #Compute the pose of the aruco: rvec = Rotation Vector, tvec = Translation Vector
-                ids_list.append(int(markerID))
+                # Compute the pose of the aruco: rvec = Rotation Vector, tvec = Translation Vector
+                if not constants.ARUCO_ID2RGV_DICT.__contains__((aruco_type, markerID)):
+                    # print(f"Could not find {(aruco_type, markerID)}")
+                    continue
+                # print(f"Found {(aruco_type, markerID)}")
+                ids_list.append(constants.ARUCO_ID2RGV_DICT[(aruco_type, markerID)])
 
-                (rvec, tvec, _) = my_estimatePoseSingleMarkers(markerCorner, 0.025, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION)                
+                (rvec, tvec, _) = my_estimatePoseSingleMarkers(markerCorner, constants.MARKER_SIZE, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION)                
                 rvec = np.array(rvec)
                 tvec = np.array(tvec)
-                cv2.drawFrameAxes(frame_copy, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION, rvec, tvec, 0.01) 
+                cv2.drawFrameAxes(frame_copy, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION, rvec, tvec, 0.1) 
         
                 ## TODO Do math to get direction_vector (TB 2021-09-20: Added a MVP implementation of the possible DCM and Translation Vector)
                 ## TODO Configure the direction_vector to be in the UAS Frame (TB 2021-09-20: Roughly Executed)
                 ##Export the tvec in the UAS frame
                 tvec_UASFrame = camera_frame_to_UAS_frame(tvec)
                 ##Convert the tvec to a unit vector
+                rospy.logdebug(f"{tvec_UASFrame*3.28084} : Tvec")
+                rospy.logdebug(f"{corners_reshaped} : Corners")
                 tvec_hat_UASFrame = tvec_UASFrame / np.linalg.norm(tvec_UASFrame)
                 direction_vectors.append(tvec_hat_UASFrame)
                 
@@ -164,6 +166,7 @@ def my_estimatePoseSingleMarkers(corners, marker_size, mtx, distortion):
     '''
 
     ## TODO (TB) Clean up this and preallocate function
+    ## TODO (TB) Improve the pose estimation algorithm
 
     marker_points = np.array([[-marker_size / 2, marker_size / 2, 0],
                               [marker_size / 2, marker_size / 2, 0],
@@ -187,28 +190,33 @@ def my_estimatePoseSingleMarkers(corners, marker_size, mtx, distortion):
 ## TODO Unit test this code
 if __name__ == "__main__":
 
-    ## TODO Test and Implement various videos and images
-    image_path = "FSW/fake_data_generators/DJI_0011_AR_2_30_S_-_Trim.mp4" #"FSW/fake_data_generators/DJI_0011_AR_2_30_S_-_Trim.mp4"
+    ## TODO Test and Implement various videos and images (TB 2021-09-20: Complete)
+    image_path = "FSW/fake_data_generators/ARUCO_Test_30 - Trim.mp4" #"FSW/fake_data_generators/DJI_0011_AR_2_30_S_-_Trim.mp4"
 
     cap = cv2.VideoCapture(image_path)
+
+    
 
     while cap.isOpened():
         ret, image = cap.read()
         if not ret:
             break
         
-        
+        # frame_width = int(cap.get(3)) 
+        # frame_height = int(cap.get(4))  
+        # print(frame_width, frame_height)
+
         Detection_Info = detect_ArUco_Direction_and_Pose(image)
              
         image = Detection_Info.annotated_camera_frame
         ##Show the image with the estimated pose, USE IF ONLY FEW IMAGE
         cv2.imshow('Estimated Pose', image)
-        print(Detection_Info.ids)
-        print(Detection_Info.direction_vectors)
+        rospy.logdebug(Detection_Info.rgv_ids)
+        rospy.logdebug(Detection_Info.direction_vectors)
 
 
                 
-        if cv2.waitKey(0) & 0xFF == 27:
+        if cv2.waitKey(1) & 0xFF == 27:
             break
 
     cap.release()
@@ -218,13 +226,37 @@ if __name__ == "__main__":
 
 # Notes and relevant information:
     """
-    OpenCV routines that deal with cameras and camera calibration (including AruCo) use a pinhole camera model. The world origin is defined as the centre of projection of the camera model (where all light rays entering the camera converge), the Z axis is defined as the optical axis of the camera model, and the X and Y axes form an orthogonal system with Z. +Z is in front of the camera, +X is to the right, and +Y is down. All AruCo coordinates are defined in this coordinate system. That explains why your "camera" tvecs and rvecs change: they do not define your camera's position in some world coordinate system, but rather the markers' positions relative to your camera.
+    OpenCV routines that deal with cameras and camera calibration (including AruCo) use a pinhole camera model. 
+    
+    The world origin is defined as the centre of projection of the camera model (where all light rays entering the camera 
+    
+    converge), the Z axis is defined as the optical axis of the camera model, and the X and Y axes form an orthogonal system with 
+    
+    Z. +Z is in front of the camera, +X is to the right, and +Y is down. All AruCo coordinates are defined in this coordinate 
+    
+    system. That explains why your "camera" tvecs and rvecs change: they do not define your camera's position in some world 
+    
+    coordinate system, but rather the markers' positions relative to your camera.
 
-You don't really need to know how the camera calibration algorithm works, other than that it will give you a camera matrix and some lens distortion parameters, which you use as input to other AruCo and OpenCV routines.
+    You don't really need to know how the camera calibration algorithm works, other than that it will give you a camera matrix and 
+    
+    some lens distortion parameters, which you use as input to other AruCo and OpenCV routines.
 
-Once you have calibration data, you can use AruCo to identify markers and return their positions and orientations in the 3D coordinate system defined by your camera, with correct compensation for the distortion of your camera lens. This is adequate to do, for example, augmented reality using OpenGL on top of the video feed from your camera.
+    Once you have calibration data, you can use AruCo to identify markers and return their positions and orientations in the 
+    
+    3D coordinate system defined by your camera, with correct compensation for the distortion of your camera lens. This is 
+    
+    adequate to do, for example, augmented reality using OpenGL on top of the video feed from your camera.
 
-The tvec of a marker is the translation (x,y,z) of the marker from the origin; the distance unit is whatever unit you used to define your printed calibration chart (ie, if you described your calibration chart to OpenCV using mm, then the distance unit in your tvecs is mm).
-
-The rvec of a marker is a 3D rotation vector which defines both an axis of rotation and the rotation angle about that axis, and gives the marker's orientation. It can be converted to a 3x3 rotation matrix using the Rodrigues function (cv::Rodrigues()). It is either the rotation which transforms the marker's local axes onto the world (camera) axes, or the inverse -- I can't remember, but you can easily check.
+    The tvec of a marker is the translation (x,y,z) of the marker from the origin; the distance unit is whatever unit you used 
+    
+    to define your printed calibration chart (ie, if you described your calibration chart to OpenCV using mm, then the distance 
+    
+    unit in your tvecs is mm).  The rvec of a marker is a 3D rotation vector which defines both an axis of rotation and the rotation 
+    
+    angle about that axis, and gives the marker's orientation. It can be converted to a 3x3 rotation matrix using the 
+    
+    Rodrigues function (cv::Rodrigues()). It is either the rotation which transforms the marker's local axes onto the world 
+    
+    (camera) axes, or the inverse -- I can't remember, but you can easily check.
 """

@@ -20,6 +20,8 @@ import numpy.typing as npt
 from enum import IntEnum
 from dataclasses import dataclass
 import rospy
+from typing import Dict, Tuple
+from scipy.spatial.transform import Rotation
 ## TODO Check that all imports are correct
 
 
@@ -30,16 +32,22 @@ MEAS_FROM_BLUETOOTH: int = 11
 
 
 """Pi Camera Parameters"""
-## TODO Could be determined from the camera calibration function from cv2.aruco
-## TODO This Needs to be updated to the true camera intrinsic parameters
-INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[933.15867, 0, 657.59], [0, 933.1586, 400.36993], [0, 0, 1]])
-## TODO This Needs to be updated to the true camera distortion parameters
-## TODO Could be determined from the camera calibration function from cv2.aruco
-DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0])
+## CALCULATED BASED ON TEST FOOTAGE fx = image width * focal length / sensor width
+INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[1910.0, 0, 320], [0, 1910.0, 240], [0, 0, 1]])
+## TODO This Needs to be updated to the true camera intrinsic parameters(TB - USED CHARUCO BOARD TO GET THIS VALUE FOR TELEPHOTO LENSE)
+# INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[4.64564718e+03, 0.00000000e+00, 7.69641498e+02], [0.00000000e+00, 4.64673256e+03, 5.43461963e+02], [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) # No distortion for testing
+
+## TODO This Needs to be updated to the true camera distortion parameters(TB - USED CHARUCO BOARD TO GET THIS VALUE FOR TELEPHOTO LENSE)
+# DISTORTION: npt.NDArray = np.array([-2.03742620e-01,  8.18152763e-01,  1.25496275e-04,  3.04049720e-03, 4.41302771e+00])	
+
+
 ## TODO Update the formatting of the camera extrinsic parameters
 ## TODO Configure a way to get the camera extrinsic parameters accurately
 EXTRINSICS_PI_CAMERA_DCM: npt.NDArray = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]) #DCM From UAS 2 Camera
 EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.0], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
+## TODO Verify the units on this, I think it needs to match the calibration units (mm)
+MARKER_SIZE: float = .352 # meters (15 inches)
 
 
 """RGV"""
@@ -48,11 +56,10 @@ class RGV_ID(IntEnum):
     RGV2 = 2
     RGVBOTH = 3
     
-ARUCO_ID2RGV_DICT = {
-	24: RGV_ID.RGV1,
-    25: RGV_ID.RGV2
+ARUCO_ID2RGV_DICT: Dict[Tuple[str, int], RGV_ID] = {
+	("DICT_6X6_50", 5): RGV_ID.RGV1,
+    ("DICT_APRILTAG_36h11", 5): RGV_ID.RGV2
 }
-
     
 
 
@@ -61,27 +68,30 @@ ARUCO_ID2RGV_DICT = {
 #Define the dictionary of ArUco markers Possible
 ## TODO Comment out the ArUco dictionary that is not being used
 ## TODO Determine the best ArUco dictionary to use
+## TODO Create a new dictionary containing only the two aruco tags used.
 ARUCO_DICT = {
-	"DICT_4X4_50": cv2.aruco.DICT_4X4_50,
-	"DICT_4X4_100": cv2.aruco.DICT_4X4_100,
-	"DICT_4X4_250": cv2.aruco.DICT_4X4_250,
-	"DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
-	"DICT_5X5_50": cv2.aruco.DICT_5X5_50,
-	"DICT_5X5_100": cv2.aruco.DICT_5X5_100,
-	"DICT_5X5_250": cv2.aruco.DICT_5X5_250,
-	"DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
+    ## Currently Not using the Commented out ones
+    
+	# "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+	# "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+	# "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+	# "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+	# "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+	# "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+	# "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+	# "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
 	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
-	"DICT_6X6_100": cv2.aruco.DICT_6X6_100,
-	"DICT_6X6_250": cv2.aruco.DICT_6X6_250,
-	"DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
-	"DICT_7X7_50": cv2.aruco.DICT_7X7_50,
-	"DICT_7X7_100": cv2.aruco.DICT_7X7_100,
-	"DICT_7X7_250": cv2.aruco.DICT_7X7_250,
-	"DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
-	"DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
-	"DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
-	"DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
-	"DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
+	# "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+	# "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+	# "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+	# "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+	# "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+	# "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+	# "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+	# "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+	# "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+	# "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+	# "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
 	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 DICTIONARY: cv2.aruco.Dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
