@@ -75,14 +75,14 @@ def frame_callback(msg: Image):
     for rgv_id in detection_info.rgv_ids:
         ##Recent Sighting Message Definition
         sighting = RecentSighting()
-        sighting.timestamp = rospy.Time.now()
+        sighting.timestamp = msg.header.stamp
         sighting.rgv_id = rgv_id
         # TODO: Make this something reasonable based on id (TB 2021-04-07: I think that this is right but im not sure that this is the correct way to do this)
         rospy.logdebug("CV published an RGV sighting")
         pub_sightings.publish(sighting)
         # for direction_vector in detection_info.direction_vectors:
         direction_vector_msg = UasToRgvDirectionVectorUasFrame()
-        direction_vector_msg.timestamp = detection_info.time
+        direction_vector_msg.timestamp = msg.header.stamp
         direction_vector_msg.direction = detection_info.direction_vectors[i].flatten().tolist()
         direction_vector_msg.rgv_id = rgv_id
         direction_vector_msg.measurement_source = constants.MEAS_FROM_CAMERA

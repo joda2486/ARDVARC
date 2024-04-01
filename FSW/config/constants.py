@@ -41,7 +41,7 @@ DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0])
 ## TODO Update the formatting of the camera extrinsic parameters
 ## TODO Configure a way to get the camera extrinsic parameters accurately
 EXTRINSICS_PI_CAMERA_DCM: npt.NDArray = Rotation.from_euler("ZY", (90, 180), degrees=True).as_matrix() #DCM From UAS 2 Camera
-EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.0], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
+EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.2], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
 
 
 """RGV"""
@@ -70,7 +70,7 @@ ARUCO_DICT = {
 DICTIONARY: cv2.aruco.Dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
 
 """State Machine Criteria"""
-RECENT_ESTIMATE_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(2)
+RECENT_ESTIMATE_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(4)
 LOCALIZE_DURATION: rospy.Duration = rospy.Duration.from_sec(90)
 JOINT_DURATION: rospy.Duration = rospy.Duration.from_sec(240)
 RECENT_SIGHTING_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(2)
@@ -110,3 +110,11 @@ DEFAULT_SETPOINT = [0,0,UAS_ALTITUDE_SETPOINT]
 
 """Estimator"""
 SPEED_THRESHOLD = 0.3 # m/s
+
+BLUETOOTH_WEIGHT = 1
+CAMERA_WEIGHT = 20
+
+MAX_PLAUSIBLE_RGV_SPEED = 3 # m/s
+MISSION_AREA_HALF_WIDTH = 22.86 # m
+ESTIMATE_HISTORY_DURATION = 2 # s
+MAX_BLIND_FOLLOW_DURATION = 2 # s

@@ -44,16 +44,10 @@ class DetectionInfo():
     rgv_ids: List[constants.RGV_ID]
     #ROS Version
     direction_vectors: List[np.ndarray]
-    time: rospy.Time
-    
-    #Windows Unit Test Version
-    #direction_vector: List
-    
 
 
 ## Function to detect ArUco markers
-def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo: 
-    frame_time = rospy.Time.now()
+def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
     direction_vectors: List[np.ndarray] = []
     ids_list: List[constants.RGV_ID] = []
     frame_copy = frame.copy()
@@ -128,7 +122,7 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
                 # print(f"Found {(aruco_type, markerID)}")
                 ids_list.append(constants.ARUCO_ID2RGV_DICT[(aruco_type, markerID)])
 
-                (rvec, tvec, _) = my_estimatePoseSingleMarkers(markerCorner, 0.025, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION)                
+                (rvec, tvec, _) = my_estimatePoseSingleMarkers(markerCorner, 0.352, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION)                
                 rvec = np.array(rvec)
                 tvec = np.array(tvec)
                 cv2.drawFrameAxes(frame_copy, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION, rvec, tvec, 0.01) 
@@ -141,7 +135,7 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
                 tvec_hat_UASFrame = tvec_UASFrame / np.linalg.norm(tvec_UASFrame)
                 direction_vectors.append(tvec_hat_UASFrame)
                 
-    return DetectionInfo(frame_copy, ids_list, direction_vectors, frame_time)
+    return DetectionInfo(frame_copy, ids_list, direction_vectors)
 
 
 def camera_frame_to_UAS_frame(position: np.ndarray) -> np.ndarray:

@@ -113,6 +113,20 @@ def _timer_callback(event=None):
         elif case == mission_state.LOCALIZE_RGV_2: # South
             x_set, y_set, z_set = _calc_orbit_setpoint_localize(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
+        elif case == mission_state.FIND_RGV_1 or case == mission_state.FIND_RGV_2:
+            x_set, y_set, z_set = DEFAULT_SETPOINT
+            if rospy.Time.now().to_sec() % 20 > 15:
+                x_set = 10
+                y_set = 10
+            elif rospy.Time.now().to_sec() % 20 > 10:
+                x_set = -10
+                y_set = 10
+            elif rospy.Time.now().to_sec() % 20 > 5:
+                x_set = -10
+                y_set = -10
+            else:
+                x_set = 10
+                y_set = -10
         else:
             x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
             # rospy.logdebug("null setpoint returned")

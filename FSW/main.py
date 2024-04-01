@@ -22,7 +22,7 @@ import rospy
 rospy.init_node("everything_else")
 
 # local imports
-from .functional import determine_mission_state, guidance, estimate_rgv_state, generate_state_machine_criteria, process_bluetooth
+from .functional import determine_mission_state, guidance, estimate_rgv_state, generate_state_machine_criteria, process_bluetooth, projector
 
 # third part imports
 import numpy as np
@@ -36,9 +36,10 @@ guidance.setup()
 estimate_rgv_state.setup()
 generate_state_machine_criteria.setup()
 process_bluetooth.setup()
+projector.setup()
 
 # Run the estimation loop until we die
-rate = rospy.Rate(3)
+rate = rospy.Rate(10)
 now = rospy.Time.now()
 while not rospy.is_shutdown():
     estimate_rgv_state.publish_estimated_rgv_state()
