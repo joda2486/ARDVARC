@@ -42,6 +42,8 @@ DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0])
 ## TODO Configure a way to get the camera extrinsic parameters accurately
 EXTRINSICS_PI_CAMERA_DCM: npt.NDArray = Rotation.from_euler("ZY", (90, 180), degrees=True).as_matrix() #DCM From UAS 2 Camera
 EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.2], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
+## TODO Verify the units on this, I think it needs to match the calibration units (mm)
+MARKER_SIZE: float = .352 # meters (15 inches)
 
 
 """RGV"""
@@ -54,7 +56,6 @@ ARUCO_ID2RGV_DICT: Dict[Tuple[str, int], RGV_ID] = {
 	("DICT_6X6_50", 5): RGV_ID.RGV1,
     ("DICT_APRILTAG_36h11", 5): RGV_ID.RGV2
 }
-
     
 
 
@@ -63,8 +64,30 @@ ARUCO_ID2RGV_DICT: Dict[Tuple[str, int], RGV_ID] = {
 #Define the dictionary of ArUco markers Possible
 ## TODO Comment out the ArUco dictionary that is not being used
 ## TODO Determine the best ArUco dictionary to use
+## TODO Create a new dictionary containing only the two aruco tags used.
 ARUCO_DICT = {
+    ## Currently Not using the Commented out ones
+    
+	# "DICT_4X4_50": cv2.aruco.DICT_4X4_50,
+	# "DICT_4X4_100": cv2.aruco.DICT_4X4_100,
+	# "DICT_4X4_250": cv2.aruco.DICT_4X4_250,
+	# "DICT_4X4_1000": cv2.aruco.DICT_4X4_1000,
+	# "DICT_5X5_50": cv2.aruco.DICT_5X5_50,
+	# "DICT_5X5_100": cv2.aruco.DICT_5X5_100,
+	# "DICT_5X5_250": cv2.aruco.DICT_5X5_250,
+	# "DICT_5X5_1000": cv2.aruco.DICT_5X5_1000,
 	"DICT_6X6_50": cv2.aruco.DICT_6X6_50,
+	# "DICT_6X6_100": cv2.aruco.DICT_6X6_100,
+	# "DICT_6X6_250": cv2.aruco.DICT_6X6_250,
+	# "DICT_6X6_1000": cv2.aruco.DICT_6X6_1000,
+	# "DICT_7X7_50": cv2.aruco.DICT_7X7_50,
+	# "DICT_7X7_100": cv2.aruco.DICT_7X7_100,
+	# "DICT_7X7_250": cv2.aruco.DICT_7X7_250,
+	# "DICT_7X7_1000": cv2.aruco.DICT_7X7_1000,
+	# "DICT_ARUCO_ORIGINAL": cv2.aruco.DICT_ARUCO_ORIGINAL,
+	# "DICT_APRILTAG_16h5": cv2.aruco.DICT_APRILTAG_16h5,
+	# "DICT_APRILTAG_25h9": cv2.aruco.DICT_APRILTAG_25h9,
+	# "DICT_APRILTAG_36h10": cv2.aruco.DICT_APRILTAG_36h10,
 	"DICT_APRILTAG_36h11": cv2.aruco.DICT_APRILTAG_36h11
 }
 DICTIONARY: cv2.aruco.Dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)

@@ -55,7 +55,7 @@ def frame_callback(msg: Image):
         rospy.logdebug(f"CV skipped a frame ({now.to_sec()} vs {msg.header.stamp.to_sec()})")
         return
     
-    rospy.logdebug(f"I AM NOT SKIPPING AHHHHHHHHHHHHHHH")
+    # rospy.logdebug(f"I AM NOT SKIPPING AHHHHHHHHHHHHHHH")
     frame = bridge.imgmsg_to_cv2(msg)
     
     detection_info = detect_ArUco_Direction_and_Pose(frame)
@@ -68,7 +68,7 @@ def frame_callback(msg: Image):
 
 
     if detection_info.rgv_ids is None:
-        print("CV processed a frame but found nothing")
+        rospy.logdebug("CV processed a frame but found nothing")
         return
 
     i = 0
@@ -88,7 +88,7 @@ def frame_callback(msg: Image):
         direction_vector_msg.measurement_source = constants.MEAS_FROM_CAMERA
         # TODO: Make this something reasonable based on direction_vector (TB 2024-02-26: I think that this is right but im not sure that this is the correct way to do this)
         rospy.logdebug("CV published a direction vector")
-        pub_vector.publish(direction_vector_msg)    
+        pub_vector.publish(direction_vector_msg) 
         i += 1
 
 
