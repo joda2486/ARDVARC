@@ -174,8 +174,8 @@ def _calc_orbit_setpoint_find(mission_state: MissionState, RGV: EstimatedRgvStat
     return setpoint
 
 def _calc_orbit_setpoint_go_home(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
-    setpoint = HOME_SETPOINT
-    rospy.logdebug("Default setpoint returned")
+    setpoint = [HOME_SETPOINT[0], HOME_SETPOINT[1], HOME_SETPOINT[2] + 1]
+    rospy.logdebug("Home setpoint returned")
     return setpoint
 
 def _calc_orbit_setpoint_joint(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
