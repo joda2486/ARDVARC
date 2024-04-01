@@ -132,8 +132,8 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
                 ##Export the tvec in the UAS frame
                 tvec_UASFrame = camera_frame_to_UAS_frame(tvec)
                 ##Convert the tvec to a unit vector
-                print(f"{tvec_UASFrame*3.28084} : Tvec")
-                print(f"{corners_reshaped} : Corners")
+                rospy.logdebug(f"{tvec_UASFrame*3.28084} : Tvec")
+                rospy.logdebug(f"{corners_reshaped} : Corners")
                 tvec_hat_UASFrame = tvec_UASFrame / np.linalg.norm(tvec_UASFrame)
                 direction_vectors.append(tvec_hat_UASFrame)
                 
@@ -211,9 +211,8 @@ if __name__ == "__main__":
         image = Detection_Info.annotated_camera_frame
         ##Show the image with the estimated pose, USE IF ONLY FEW IMAGE
         cv2.imshow('Estimated Pose', image)
-        print(Detection_Info.rgv_ids)
-        print(Detection_Info.direction_vectors)
-        print()
+        rospy.logdebug(Detection_Info.rgv_ids)
+        rospy.logdebug(Detection_Info.direction_vectors)
 
 
                 
