@@ -41,7 +41,7 @@ from typing import Optional, List
 class DetectionInfo():
     ##TODO Combine the IDS and Dir Vecs into a list of tuples
     annotated_camera_frame: cv2.typing.MatLike
-    ids: List[int]
+    rgv_ids: List[constants.RGV_ID]
     direction_vectors: List[np.ndarray]
     
 
@@ -49,7 +49,7 @@ class DetectionInfo():
 ## Function to detect ArUco markers
 def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo: 
     direction_vectors: List[np.ndarray] = []
-    ids_list: List[int] = []
+    ids_list: List[constants.RGV_ID] = []
     frame_copy = frame.copy()
 
     for aruco_type, dictionary_id in constants.ARUCO_DICT.items():
@@ -115,8 +115,12 @@ def detect_ArUco_Direction_and_Pose(frame: cv2.typing.MatLike) -> DetectionInfo:
 
                 
 
-            #Compute the pose of the aruco: rvec = Rotation Vector, tvec = Translation Vector
-                ids_list.append(int(markerID))
+                # Compute the pose of the aruco: rvec = Rotation Vector, tvec = Translation Vector
+                if not constants.ARUCO_ID2RGV_DICT.__contains__((aruco_type, markerID)):
+                    # print(f"Could not find {(aruco_type, markerID)}")
+                    continue
+                # print(f"Found {(aruco_type, markerID)}")
+                ids_list.append(constants.ARUCO_ID2RGV_DICT[(aruco_type, markerID)])
 
                 (rvec, tvec, _) = my_estimatePoseSingleMarkers(markerCorner, constants.MARKER_SIZE, constants.INTRINSICS_PI_CAMERA, constants.DISTORTION)                
                 rvec = np.array(rvec)
@@ -207,7 +211,7 @@ if __name__ == "__main__":
         image = Detection_Info.annotated_camera_frame
         ##Show the image with the estimated pose, USE IF ONLY FEW IMAGE
         cv2.imshow('Estimated Pose', image)
-        print(Detection_Info.ids)
+        print(Detection_Info.rgv_ids)
         print(Detection_Info.direction_vectors)
         print()
 
