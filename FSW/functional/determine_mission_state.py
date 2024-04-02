@@ -32,10 +32,6 @@ def _determine_next_mission_state(current_state: MissionStates, criteria: StateM
     Software Function Tracker spreadsheet.
     """
     
-    # Check for GO_HOME first because it always behaves the same
-    if current_state is MissionStates.GO_HOME or criteria.battery_low:
-        return MissionStates.GO_HOME
-    
     if current_state is MissionStates.FIND_RGV_1:
         if criteria.recent_rgv_1_estimate:
             # Change to TRACK_RGV_1
