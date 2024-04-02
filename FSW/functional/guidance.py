@@ -117,9 +117,6 @@ def _timer_callback(event=None):
         elif case == mission_state.JOINT_LOCALIZE:
             x_set, y_set, z_set = _calc_orbit_setpoint_joint(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        elif case == mission_state.GO_HOME:
-            x_set, y_set, z_set = _calc_orbit_setpoint_go_home(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
-
         else:
             rospy.logdebug("null setpoint returned")
             x_set, y_set, z_set = CENTER_SETPOINT
@@ -171,11 +168,6 @@ def setup():
 
 def _calc_orbit_setpoint_find(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
     setpoint =  [CENTER_SETPOINT[0], CENTER_SETPOINT[1], UAS_ALTITUDE_SETPOINT]
-    return setpoint
-
-def _calc_orbit_setpoint_go_home(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
-    setpoint = [HOME_SETPOINT[0], HOME_SETPOINT[1], HOME_SETPOINT[2] + 1]
-    rospy.logdebug("Home setpoint returned")
     return setpoint
 
 def _calc_orbit_setpoint_joint(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
