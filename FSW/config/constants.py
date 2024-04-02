@@ -113,10 +113,10 @@ ORBITAL_PERIOD = 20  # seconds to complete a full orbit
 TIME_AT_ORBIT_POINT = 5  # [seconds] loiter at each point in the orbit for 5 seconds
 
 # TODO(LF) review this
-ORBITAL_RADIUS_JOINT = 10.0 # meters (ground distance)
+UAS_ALTITUDE_SETPOINT_JOINT = 18.0 # meters (Little under 60 ft)
 
 # TODO(LF) review this
-UAS_ALTITUDE_SETPOINT = 9.144 # meters (30 ft)
+UAS_ALTITUDE_SETPOINT = 9.2 # meters (little over 30 ft)
 
 # Magic Number that's the center of the aerospace backyard in lat/long
 # This is decimal lat/long, NOT mins, secs
@@ -129,7 +129,8 @@ AERO_BACKYARD_APPROX_ALT = 1614.001932 # meters
 # TODO(LF) review before flight because this will be the first setpoint sent and will also be
 # sent in null-type cases
 # this specifically is the point in local frame where the pilot is planning on having the drone in hold mode when the pilot switches to offboard mode
-DEFAULT_SETPOINT = [0,0,UAS_ALTITUDE_SETPOINT]
+CENTER_SETPOINT = [0,0,0]
+HOME_SETPOINT = [-10,-10,0]
 
 """Estimator"""
 SPEED_THRESHOLD = 0.3 # m/s

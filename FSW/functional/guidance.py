@@ -97,40 +97,34 @@ def _timer_callback(event=None):
         if offboard_status and offboard_start_time is None:
             offboard_start_time = rospy.Time.now()
         
-        # x_set, y_set, z_set = _calc_orbit_setpoint_localize(RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
-         
         case = mission_state.mission_state
+        if case == mission_state.FIND_RGV_1:
+            x_set, y_set, z_set = _calc_orbit_setpoint_find(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        
+        elif case == mission_state.FIND_RGV_2:
+            x_set, y_set, z_set = _calc_orbit_setpoint_find(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        if case == mission_state.TRACK_RGV_1: # positive East
-            x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        elif case == mission_state.TRACK_RGV_1: 
+            x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        elif case == mission_state.TRACK_RGV_2: # positive North
-            x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        elif case == mission_state.TRACK_RGV_2:
+            x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        elif case == mission_state.LOCALIZE_RGV_1: # West
-            x_set, y_set, z_set = _calc_orbit_setpoint_localize(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        elif case == mission_state.LOCALIZE_RGV_1:
+            x_set, y_set, z_set = _calc_orbit_setpoint_localize(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        elif case == mission_state.LOCALIZE_RGV_2: # South
-            x_set, y_set, z_set = _calc_orbit_setpoint_localize(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        elif case == mission_state.LOCALIZE_RGV_2:
+            x_set, y_set, z_set = _calc_orbit_setpoint_localize(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+        
+        elif case == mission_state.JOINT_LOCALIZE:
+            x_set, y_set, z_set = _calc_orbit_setpoint_joint(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
 
-        elif case == mission_state.FIND_RGV_1 or case == mission_state.FIND_RGV_2:
-            x_set, y_set, z_set = DEFAULT_SETPOINT
-            if rospy.Time.now().to_sec() % 20 > 15:
-                x_set = 10
-                y_set = 10
-            elif rospy.Time.now().to_sec() % 20 > 10:
-                x_set = -10
-                y_set = 10
-            elif rospy.Time.now().to_sec() % 20 > 5:
-                x_set = -10
-                y_set = -10
-            else:
-                x_set = 10
-                y_set = -10
+        elif case == mission_state.GO_HOME:
+            x_set, y_set, z_set = _calc_orbit_setpoint_go_home(mission_state, RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
+
         else:
-            x_set, y_set, z_set = _calc_orbit_setpoint_track(mission_state,RGV_state, current_UAS_pose, offboard_start_time, offboard_status)
-            # rospy.logdebug("null setpoint returned")
-            # x_set, y_set, z_set = DEFAULT_SETPOINT
+            rospy.logdebug("null setpoint returned")
+            x_set, y_set, z_set = CENTER_SETPOINT
 
         current_setpoint = PoseStamped()
         # set the fields of 
@@ -174,6 +168,29 @@ def setup():
     
     _timer = rospy.Timer(rospy.Duration(0.05), _timer_callback)
 
+
+def _calc_orbit_setpoint_find(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
+    setpoint =  [CENTER_SETPOINT[0], CENTER_SETPOINT[1], UAS_ALTITUDE_SETPOINT]
+    return setpoint
+
+def _calc_orbit_setpoint_go_home(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
+    setpoint = [HOME_SETPOINT[0], HOME_SETPOINT[1], HOME_SETPOINT[2] + 1]
+    rospy.logdebug("Home setpoint returned")
+    return setpoint
+
+def _calc_orbit_setpoint_joint(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
+
+    if offboard_status:
+        mid_x = (RGV.rgv1_position_local[0] + RGV.rgv2_position_local[0])/2.0
+        mid_y = (RGV.rgv1_position_local[1] + RGV.rgv2_position_local[1])/2.0
+        setpoint = [mid_x, mid_y, UAS_ALTITUDE_SETPOINT_JOINT]
+    else:
+        rospy.logdebug("Default setpoint returned")
+        setpoint = CENTER_SETPOINT
+
+    return setpoint
+
+
 def _calc_orbit_setpoint_track(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:
     
     if offboard_status:
@@ -191,7 +208,7 @@ def _calc_orbit_setpoint_track(mission_state: MissionState, RGV: EstimatedRgvSta
         setpoint = [x_c, y_c, UAS_ALTITUDE_SETPOINT]
     else:
         rospy.logdebug("null setpoint returned")
-        setpoint = DEFAULT_SETPOINT
+        setpoint = CENTER_SETPOINT
 
     return setpoint
 
@@ -210,10 +227,6 @@ def _calc_orbit_setpoint_localize(mission_state: MissionState, RGV: EstimatedRgv
         x_c = orbit_center[0] 
         y_c = orbit_center[1] 
 
-        # used to test if we can orbit the origin
-        # x_c = 0.0
-        # y_c = 0.0
-
         now = rospy.Time.now()
         elapsed_time = (now - start_time).to_sec()
 
@@ -229,10 +242,10 @@ def _calc_orbit_setpoint_localize(mission_state: MissionState, RGV: EstimatedRgv
             setpoint = [x_c, y_c - ORBITAL_RADIUS_SINGLE, UAS_ALTITUDE_SETPOINT]
         else:
             rospy.logdebug("null setpoint returned")
-            setpoint = DEFAULT_SETPOINT
+            setpoint = CENTER_SETPOINT
     else:
         rospy.logdebug("null setpoint returned")
-        setpoint = DEFAULT_SETPOINT
+        setpoint = CENTER_SETPOINT
 
     return setpoint
 
@@ -262,9 +275,9 @@ def _calc_orbit_setpoint_UpLeftRight(RGV: EstimatedRgvState, UAS: PoseStamped, s
         elif now > start_time + rospy.Duration(10):
             setpoint = [-2,0,2]
         else:
-            setpoint = DEFAULT_SETPOINT
+            setpoint = CENTER_SETPOINT
             rospy.logdebug("null setpoint returned")
     else:
-        setpoint = DEFAULT_SETPOINT
+        setpoint = CENTER_SETPOINT
 
     return setpoint
