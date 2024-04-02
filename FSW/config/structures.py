@@ -28,4 +28,3 @@ class MissionStates(Enum):
     TRACK_RGV_2 = 4
     LOCALIZE_RGV_2 = 5
     JOINT_LOCALIZE = 6
-    GO_HOME = 7

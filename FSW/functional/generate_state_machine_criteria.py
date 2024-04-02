@@ -2,11 +2,9 @@ from typing import Optional
 import rospy
 import genpy
 from ..config.structures import MissionStates
-from ..config.topic_names import STATE_MACHINE_CRITERIA, ESTIMATED_RGV_STATES, RECENT_RGV_SIGHTINGS, MISSION_STATES, BATTERY
-from ..config.constants import RGV_ID, RECENT_ESTIMATE_TIME_CUTOFF, LOCALIZE_DURATION, JOINT_DURATION, RECENT_SIGHTING_TIME_CUTOFF, BATTERY_LOW_CHARGE_PCT_CUTOFF, MINIMUM_LOCALIZE_DURATION, CONFIDENT_ESTIMATE_THRESHOLD
+from ..config.topic_names import STATE_MACHINE_CRITERIA, ESTIMATED_RGV_STATES, RECENT_RGV_SIGHTINGS, MISSION_STATES
+from ..config.constants import RGV_ID, RECENT_ESTIMATE_TIME_CUTOFF, LOCALIZE_DURATION, JOINT_DURATION, RECENT_SIGHTING_TIME_CUTOFF, MINIMUM_LOCALIZE_DURATION, CONFIDENT_ESTIMATE_THRESHOLD
 from rosardvarc.msg import StateMachineCriteria, EstimatedRgvState, RecentSighting, MissionState
-from sensor_msgs.msg import BatteryState
-import numpy as np
 
 
 _time_of_most_recent_rgv_1_sighting: Optional[genpy.Time] = None
@@ -19,8 +17,6 @@ _time_of_most_recent_confident_rgv_1_estimate: Optional[genpy.Time] = None
 _time_of_most_recent_confident_rgv_2_estimate: Optional[genpy.Time] = None
 _rgv_1_moving: bool = True
 _rgv_2_moving: bool = True
-
-_low_battery: bool = False
 
 
 def _get_current_mission_state_time_spent(now: rospy.Time) -> rospy.Duration:
@@ -72,7 +68,6 @@ def _build_state_machine_criteria_message(now: rospy.Time) -> StateMachineCriter
     state_machine_criteria.rgv_1_sighted = _time_of_most_recent_rgv_1_sighting is not None and now - _time_of_most_recent_rgv_1_sighting <= RECENT_SIGHTING_TIME_CUTOFF
     state_machine_criteria.rgv_2_sighted = _time_of_most_recent_rgv_2_sighting is not None and now - _time_of_most_recent_rgv_2_sighting <= RECENT_SIGHTING_TIME_CUTOFF
     state_machine_criteria.minimum_localize_time_reached = (_current_mission_state is MissionStates.LOCALIZE_RGV_1 or _current_mission_state is MissionStates.LOCALIZE_RGV_2) and current_mission_state_time_spent >= MINIMUM_LOCALIZE_DURATION
-    state_machine_criteria.battery_low = _low_battery
     return state_machine_criteria
 
 
@@ -111,18 +106,6 @@ def _mission_state_callback(msg: MissionState):
         # Change to new mission state
         _current_mission_state = new_mission_state
         _current_mission_state_start_time = msg.timestamp
-
-
-def _battery_callback(msg: BatteryState):
-    """
-    This is the callback used by the battery subscriber. It updates _low_battery based on how charged
-    the battery is.
-    """
-    
-    global _low_battery
-    
-    rospy.logdebug("State machine criteria generator saved a battery state")
-    _low_battery = msg.percentage <= BATTERY_LOW_CHARGE_PCT_CUTOFF
         
 
 def setup():
@@ -130,13 +113,12 @@ def setup():
     Setup publishers and subscribers for generate_state_machine_criteria.py
     """
     
-    global _state_machine_criteria_pub, _estimated_rgv_state_sub, _sightings_sub, _mission_state_sub, _battery_sub, _current_mission_state_start_time
+    global _state_machine_criteria_pub, _estimated_rgv_state_sub, _sightings_sub, _mission_state_sub, _current_mission_state_start_time
     
     _state_machine_criteria_pub = rospy.Publisher(STATE_MACHINE_CRITERIA, StateMachineCriteria, queue_size=1)
     _estimated_rgv_state_sub = rospy.Subscriber(ESTIMATED_RGV_STATES, EstimatedRgvState, _estimated_rgv_state_callback)
     _sightings_sub = rospy.Subscriber(RECENT_RGV_SIGHTINGS, RecentSighting, _sightings_callback)
     _mission_state_sub = rospy.Subscriber(MISSION_STATES, MissionState, _mission_state_callback)
-    _battery_sub = rospy.Subscriber(BATTERY, BatteryState, _battery_callback)
     _current_mission_state_start_time = rospy.Time.now()
 
 
@@ -144,4 +126,3 @@ _state_machine_criteria_pub: rospy.Publisher
 _estimated_rgv_state_sub: rospy.Subscriber
 _sightings_sub: rospy.Subscriber
 _mission_state_sub: rospy.Subscriber
-_battery_sub : rospy.Subscriber

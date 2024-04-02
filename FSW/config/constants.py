@@ -97,7 +97,6 @@ RECENT_ESTIMATE_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(4)
 LOCALIZE_DURATION: rospy.Duration = rospy.Duration.from_sec(90)
 JOINT_DURATION: rospy.Duration = rospy.Duration.from_sec(240)
 RECENT_SIGHTING_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(2)
-BATTERY_LOW_CHARGE_PCT_CUTOFF: float = 0.05 # Percent from 0 to 1
 MINIMUM_LOCALIZE_DURATION: rospy.Duration = rospy.Duration.from_sec(60)
 CONFIDENT_ESTIMATE_THRESHOLD: float = 0.2
 
