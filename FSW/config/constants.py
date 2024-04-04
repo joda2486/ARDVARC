@@ -135,3 +135,7 @@ AERO_BACKYARD_APPROX_ALT = 1614.001932 # meters
 CENTER_SETPOINT = [0,0,0]
 HOME_SETPOINT = [-10,-10,0]
 
+
+"""Bluetooth"""
+# TODO: Make sure that this is correct
+BLUETOOTH_DCM: npt.NDArray = np.array([[.2682,.8012,-.5350],[.3590,-.5985,-.7162],[-.8940,0,-.4481]])
