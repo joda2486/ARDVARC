@@ -5,17 +5,19 @@ clc; close all
 % Read File
 bag = rosbag('ardvarc_sim_bag_001_100.bag');
 
-rosbag info 'filename.bag' % display information
+rosbag info 'ardvarc_sim_bag_001_100.bag' % display information
 
-%{
+
 
 % Initilize Variables
-times = select(bag,'TimeStamp');
-% repeat w/ rgv ID, azimuth, elevations
-bluetooth = [times,IDs,azimuths,elevations];
+bluebag = select(bag,'Topic','/bluetooth/az_els');
+bluestruct = readMessages(bluebag,'DataFormat','Struct');
 
-cam = select(bag,'Camera'); % camera files 
 
+
+cambag = select(bag,'Topic','/camera/frames'); % camera files 
+camstruct = readMessages(cambag,'DataFormat','Struct');
+%{
 pose = select(bag,'Topic','/ardvarc/pose');
 posestruct = readMessages(pose,'DataFormat','Struct');
 
