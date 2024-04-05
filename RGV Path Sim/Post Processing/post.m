@@ -3,7 +3,7 @@ clc; close all
 
 %% Initialize
 % Read File
-bag = rosbag('filename.bag');
+bag = rosbag('ardvarc_sim_bag_001_100.bag');
 
 rosbag info 'filename.bag' % display information
 
