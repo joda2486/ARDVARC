@@ -1,4 +1,4 @@
-clc; clear all
+clc; close all
 
 
 %% Initialize
@@ -6,6 +6,8 @@ clc; clear all
 bag = rosbag('filename.bag');
 
 rosbag info 'filename.bag' % display information
+
+%{
 
 % Initilize Variables
 times = select(bag,'TimeStamp');
@@ -38,5 +40,14 @@ zPoints = cellfun(@(m) double(m.Z),posestruct);
 plot(xPoints,yPoints,zPoints)
 
 
+
+%% Output
+
+
+
+%}
 %% Functions
+
+
+
 
