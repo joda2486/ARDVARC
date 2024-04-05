@@ -42,11 +42,11 @@ def estimate_rgv_state():
     """
     # Estimate the RGV state
     # math math math
-    
-    # Publish estimate
-    rospy.logdebug("RGV state estimator published an RGV state estimate")
-    _estimated_rgv_state_pub.publish(
-        EstimatedRgvState(
-            # TODO: Make this something reasonable
-        )
-    )
+    pass 
+    # # Publish estimate
+    # rospy.logdebug("RGV state estimator published an RGV state estimate")
+    # _estimated_rgv_state_pub.publish(
+    #     EstimatedRgvState(
+    #         # TODO: Make this something reasonable
+    #     )
+    # )
