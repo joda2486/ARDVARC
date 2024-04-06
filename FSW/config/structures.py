@@ -13,14 +13,14 @@ Notes:
 
 import numpy as np
 import numpy.typing as npt
-from enum import Enum
+from enum import IntEnum
 from dataclasses import dataclass
 import time
 import sys
 
 
 # All possible states of Ardvarc automaton
-class MissionStates(Enum):
+class MissionStates(IntEnum):
     FIND_RGV_1 = 0
     TRACK_RGV_1 = 1
     LOCALIZE_RGV_1 = 2
