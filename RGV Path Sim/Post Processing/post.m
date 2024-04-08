@@ -82,6 +82,7 @@ plot(xPoints,yPoints,zPoints)
 
 % need function to take a matrix where column 1 is timestamps and column 2
 % is data values, and remove repetitive timestamps -- ex. see matrix m_states
+% or set timestamp divisions
 
 % need function to take multiple matrices and compare timestamps, align and
 % trim timestamps to lowest common denominator, and combine into one large matrix
