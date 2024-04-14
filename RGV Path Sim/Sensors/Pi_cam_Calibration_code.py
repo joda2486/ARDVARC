@@ -15,8 +15,7 @@ def calibrate_cam():
     # Arrays to store object points and image points from all images
     all_corners = []
     all_ids = []
-    images = ["img1.jpg", "img2.jpg", "img3.jpg", "img4.jpg", "img5.jpg", "img6.jpg", "img7.jpg", "img8.jpg", "img9.jpg", "img10.jpg",
-              "img11.jpg", "img12.jpg", "img13.jpg", "img14.jpg"]# "ss.jpg", "phone.jpg","phone_print.jpg"]
+    images = [f"i{i}.jpg" for i in range(1, 17)]
     # TODO: The list of images above should only contain pictures from the same camera, so remove ss.jpg and phone.jpg
 
     # Loop over your images
@@ -24,12 +23,14 @@ def calibrate_cam():
         image = cv2.imread(img)
 
         (corners, ids, _) = detector.detectMarkers(image)
-        ids -= np.min(ids) #Correct for possible id offsets
+        if ids is not None:
+            ids -= np.min(ids) #Correct for possible id offsets
+            
 
         if len(corners) > 0:
             charuco_retval, charuco_corners, charuco_ids = cv2.aruco.interpolateCornersCharuco(corners, ids, image, board)
             
-            if charuco_retval:
+            if charuco_retval and len(charuco_corners) >= 4:
                 print("Interpolated!")
                 all_corners.append(charuco_corners)
                 all_ids.append(charuco_ids)
