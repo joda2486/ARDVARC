@@ -30,7 +30,7 @@ posestruct = readMessages(posebag,'DataFormat','Struct');
 
 
 
-%{
+
 %% RGV Location: Bluetooth and Frame Transformations
 % run transformation function on bluetooth data
 % maybe don't need -- for now using UAStoRGV direction vector
@@ -40,11 +40,38 @@ posestruct = readMessages(posebag,'DataFormat','Struct');
 
 %% Camera Files
 % read image, identify bounding box
-img = rosReadImage(msg);
+%img = rosReadImage(msg);
 
 %% Poses
 
-%}
+
+
+UAS_to_RGV = zeros(length(UAS_to_RGV_struct),4);
+for i = 1:length(UAS_to_RGV_struct)
+
+    UAS_to_RGV(i,1) = double(UAS_to_RGV_struct{i, 1}.Timestamp.Sec)+double(UAS_to_RGV_struct{i, 1}.Timestamp.Nsec)*10^-9;
+    UAS_to_RGV(i,2) = double(UAS_to_RGV_struct{i, 1}.Direction(1));
+    UAS_to_RGV(i,3) = double(UAS_to_RGV_struct{i, 1}.Direction(2));
+    UAS_to_RGV(i,4) = double(UAS_to_RGV_struct{i, 1}.Direction(3));
+    
+end
+
+UAS_Pose = zeros(length(posestruct),7);
+figure
+hold on
+grid on
+for i = 1:length(posestruct)
+    UAS_Pose(i,2) = double(posestruct{i, 1}.Header.Stamp.Sec)+double(posestruct{i, 1}.Header.Stamp.Nsec)*10^-9;
+    UAS_Pose(i,2) = double(posestruct{i, 1}.Pose.Position.X);
+    UAS_Pose(i,3) = double(posestruct{i, 1}.Pose.Position.Y);
+    UAS_Pose(i,4) = double(posestruct{i, 1}.Pose.Position.Z);
+    UAS_Pose(i,5) = double(posestruct{i, 1}.Pose.Orientation.X);
+    UAS_Pose(i,6) = double(posestruct{i, 1}.Pose.Orientation.Y);
+    UAS_Pose(i,7) = double(posestruct{i, 1}.Pose.Orientation.Z);
+
+    plot3(UAS_Pose(i,2),UAS_Pose(i,3),UAS_Pose(i,4),Marker='o',Color='r')
+
+end
 %% Mission State and Estimated RGV State
 
 
@@ -52,14 +79,14 @@ img = rosReadImage(msg);
 m_states = zeros(length(mission_states_struct),2);
 for ii = 1:length(mission_states_struct)
     m_states(ii,1) = double(mission_states_struct{ii, 1}.Timestamp.Nsec)*10^-9 + double(mission_states_struct{ii, 1}.Timestamp.Sec);
-    m_states(ii,2) = mission_states_struct{ii, 1}.MissionState_;  
+    m_states(ii,2) = double(mission_states_struct{ii, 1}.MissionState_);  
 end
 
 rgv_states = zeros(length(RGV_state_struct),3);
 for ii = 1:length(RGV_state_struct)
-    rgv_states(ii,1) = RGV_state_struct{ii, 1}.Timestamp.Sec;
-    rgv_states(ii,2) = RGV_state_struct{ii, 1}.Rgv1Moving;
-    rgv_states(ii,3) = RGV_state_struct{ii, 1}.Rgv2Moving;
+    rgv_states(ii,1) = double(RGV_state_struct{ii, 1}.Timestamp.Sec) + double(RGV_state_struct{ii, 1}.Timestamp.Nsec)*10^-9;
+    rgv_states(ii,2) = double(RGV_state_struct{ii, 1}.Rgv1Moving);
+    rgv_states(ii,3) = double(RGV_state_struct{ii, 1}.Rgv2Moving);
 end
 
 %{
@@ -73,13 +100,26 @@ plot(xPoints,yPoints,zPoints)
 
 % plot RGV paths
 
-
+%}
 
 %% Output
 
+% Alignent Variable
+A_var = UAS_to_RGV;
+
+% Match Mission State to alignment variable data
+m_states_aligned = zeros(size(m_states,1),size(m_states,2));
+
+for ii = 1:length(A_var)
+[t,m_idx] = min(abs(m_states(:,1)-A_var(ii,1)));
+m_states_aligned(ii,:) = [A_var(ii,1),m_states(m_idx,2)];
+end
+
+out = [A_var(:,1),A_var(:,2:end),m_states_aligned(:,2:end)]; %need to add pose
+out_table = array2table(out,'VariableNames',{'Timestamp','Dir. 1','Dir. 2','Dir. 3','Mission State'});
 
 
-%}
+
 %% Functions
 
 % need function to take a matrix where column 1 is timestamps and column 2
