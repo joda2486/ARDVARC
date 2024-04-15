@@ -116,7 +116,7 @@ m_states_aligned(ii,:) = [A_var(ii,1),m_states(m_idx,2)];
 end
 
 out = [A_var(:,1),A_var(:,2:end),m_states_aligned(:,2:end)]; %need to add pose
-out_table = array2table(out,'VariableNames',{'Timestamp','Dir. 1','Dir. 2','Dir. 3','Mission State'});
+out_table = array2table(out,'VariableNames',{'Timestamp','RGV N','RGV E','RGV D','Mission State'});
 
 
 
