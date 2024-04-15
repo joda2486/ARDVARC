@@ -47,9 +47,11 @@ img = rosReadImage(msg);
 %}
 %% Mission State and Estimated RGV State
 
+
+
 m_states = zeros(length(mission_states_struct),2);
 for ii = 1:length(mission_states_struct)
-    m_states(ii,1) = mission_states_struct{ii, 1}.Timestamp.Nsec*10^-9 + mission_states_struct{ii, 1}.Timestamp.Sec;
+    m_states(ii,1) = double(mission_states_struct{ii, 1}.Timestamp.Nsec)*10^-9 + double(mission_states_struct{ii, 1}.Timestamp.Sec);
     m_states(ii,2) = mission_states_struct{ii, 1}.MissionState_;  
 end
 
