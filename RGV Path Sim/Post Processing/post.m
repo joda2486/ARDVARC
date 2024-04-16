@@ -3,10 +3,12 @@ clc; close all
 
 %% Initialize
 % Read File
-bag = rosbag('ardvarc_sim_bag_001_100.bag');
+%data = 'ardvarc_sim_bag_001_100.bag';
+%data = '_2024-04-12-15-34-36_1.bag';
+%data = '_2024-04-14-17-46-38_0.bag';
 
-rosbag info 'ardvarc_sim_bag_001_100.bag' % display information
-
+bag = rosbag('_2024-04-12-15-34-36_1.bag');
+%rosbag info '_2024-04-12-15-34-36_1.bag' % display information
 
 
 % Initilize Variables
@@ -25,7 +27,7 @@ RGV_state_struct = readMessages(RGV_state_bag,'DataFormat','Struct');
 mission_states_bag = select(bag,'Topic','/state_machine/mission_states');
 mission_states_struct = readMessages(mission_states_bag,'DataFormat','Struct');
 
-posebag = select(bag,'Topic','/mavros/setpoint_position/local'); % poses
+posebag = select(bag,'Topic','mavros/local_position/pose'); % poses
 posestruct = readMessages(posebag,'DataFormat','Struct');
 
 
@@ -45,15 +47,30 @@ posestruct = readMessages(posebag,'DataFormat','Struct');
 %% Poses
 
 
+UAS_to_RGV1 = zeros(round(length(UAS_to_RGV_struct)/2,TieBreaker="tozero"),4);
+UAS_to_RGV2 = zeros(round(length(UAS_to_RGV_struct)/2,TieBreaker="tozero"),4);
 
-UAS_to_RGV = zeros(length(UAS_to_RGV_struct),4);
-for i = 1:length(UAS_to_RGV_struct)
+if UAS_to_RGV_struct{1, 1}.RgvId == 1
+    n = 1;
+    o = 0;
+elseif UAS_to_RGV_struct{1, 1}.RgvId == 2
+    n = 0;
+    o = 1;
+end
 
-    UAS_to_RGV(i,1) = double(UAS_to_RGV_struct{i, 1}.Timestamp.Sec)+double(UAS_to_RGV_struct{i, 1}.Timestamp.Nsec)*10^-9;
-    UAS_to_RGV(i,2) = double(UAS_to_RGV_struct{i, 1}.Direction(1));
-    UAS_to_RGV(i,3) = double(UAS_to_RGV_struct{i, 1}.Direction(2));
-    UAS_to_RGV(i,4) = double(UAS_to_RGV_struct{i, 1}.Direction(3));
-    
+for i = 1:round(length(UAS_to_RGV_struct)/2,TieBreaker="tozero")
+    j = 2*i-n;
+    UAS_to_RGV1(i,1) = double(UAS_to_RGV_struct{j, 1}.Timestamp.Sec)+double(UAS_to_RGV_struct{j, 1}.Timestamp.Nsec)*10^-9;
+    UAS_to_RGV1(i,2) = double(UAS_to_RGV_struct{j, 1}.Direction(1));
+    UAS_to_RGV1(i,3) = double(UAS_to_RGV_struct{j, 1}.Direction(2));
+    UAS_to_RGV1(i,4) = double(UAS_to_RGV_struct{j, 1}.Direction(3));
+ 
+    k = 2*i-o;
+    UAS_to_RGV2(i,1) = double(UAS_to_RGV_struct{k, 1}.Timestamp.Sec)+double(UAS_to_RGV_struct{k, 1}.Timestamp.Nsec)*10^-9;
+    UAS_to_RGV2(i,2) = double(UAS_to_RGV_struct{k, 1}.Direction(1));
+    UAS_to_RGV2(i,3) = double(UAS_to_RGV_struct{k, 1}.Direction(2));
+    UAS_to_RGV2(i,4) = double(UAS_to_RGV_struct{k, 1}.Direction(3));
+  
 end
 
 UAS_Pose = zeros(length(posestruct),7);
@@ -61,7 +78,7 @@ figure
 hold on
 grid on
 for i = 1:length(posestruct)
-    UAS_Pose(i,2) = double(posestruct{i, 1}.Header.Stamp.Sec)+double(posestruct{i, 1}.Header.Stamp.Nsec)*10^-9;
+    UAS_Pose(i,1) = double(posestruct{i, 1}.Header.Stamp.Sec)+double(posestruct{i, 1}.Header.Stamp.Nsec)*10^-9;
     UAS_Pose(i,2) = double(posestruct{i, 1}.Pose.Position.X);
     UAS_Pose(i,3) = double(posestruct{i, 1}.Pose.Position.Y);
     UAS_Pose(i,4) = double(posestruct{i, 1}.Pose.Position.Z);
@@ -72,6 +89,7 @@ for i = 1:length(posestruct)
     plot3(UAS_Pose(i,2),UAS_Pose(i,3),UAS_Pose(i,4),Marker='o',Color='r')
 
 end
+hold off
 %% Mission State and Estimated RGV State
 
 
@@ -105,18 +123,29 @@ plot(xPoints,yPoints,zPoints)
 %% Output
 
 % Alignent Variable
-A_var = UAS_to_RGV;
+A_var = UAS_to_RGV1;
 
 % Match Mission State to alignment variable data
-m_states_aligned = zeros(size(m_states,1),size(m_states,2));
+m_states_aligned = zeros(size(A_var,1),size(m_states,2));
 
 for ii = 1:length(A_var)
-[t,m_idx] = min(abs(m_states(:,1)-A_var(ii,1)));
+[t1,m_idx] = min(abs(m_states(:,1)-A_var(ii,1)));
 m_states_aligned(ii,:) = [A_var(ii,1),m_states(m_idx,2)];
 end
 
-out = [A_var(:,1),A_var(:,2:end),m_states_aligned(:,2:end)]; %need to add pose
-out_table = array2table(out,'VariableNames',{'Timestamp','RGV N','RGV E','RGV D','Mission State'});
+% Match Poses to alignment variable data
+poses_aligned = zeros(size(A_var,1),size(UAS_Pose,2));
+
+for ii = 1:length(A_var)
+[t2,p_idx] = min(abs(UAS_Pose(:,1)-A_var(ii,1)));
+poses_aligned(ii,:) = [A_var(ii,1),UAS_Pose(p_idx,2:end)];
+end
+
+
+out = [A_var(:,1),A_var(:,2:end),UAS_to_RGV2(:,2:end),poses_aligned(:,2:end),m_states_aligned(:,2:end)]; %need to add pose
+out_table = array2table(out,'VariableNames',{'Timestamp','RGV1 N','RGV1 E','RGV1 D',...
+    'RGV2 N','RGV2 E','RGV2 D','UAS Pos. X', 'UAS Pos. Y', 'UAS Pos. Z',...
+    'UAS Orient X', 'UAS Orient Y', 'UAS Orient Z', 'Mission State'});
 
 
 
