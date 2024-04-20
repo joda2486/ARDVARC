@@ -25,11 +25,12 @@ colors = ["#0072BD", "#D95319", "#EDB120", "#7E2F8E", "#77AC30", "#4DBEEE", "#A2
 linestyles = ["-", "--", "-.", ":"];
 
 disp("Trying different delays...")
+poses = extract_uas_poses(bag);
 for i = 1:length(delays)
     disp(i + "/" + length(delays))
     delay = delays(i);
 
-    [times, post_projections] = calculate_projections(bag, delay, measurement_source, rgv_id);
+    [times, post_projections] = calculate_projections(bag, poses, delay, measurement_source, rgv_id);
     
     color = colors(mod(i-1,length(colors))+1);
     linestyle = linestyles(floor((i-1)/length(colors))+1);

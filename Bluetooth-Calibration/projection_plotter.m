@@ -17,12 +17,12 @@ bt_delay = -0.3;
 cam_delay = 0.5;
 rgv_id = 1;
 
-
-[bt_times, bt_projections] = calculate_projections(bag, bt_delay, constants.BLUETOOTH_SOURCE, rgv_id);
+poses = extract_uas_poses(bag);
+[bt_times, bt_projections] = calculate_projections(bag, poses, bt_delay, constants.BLUETOOTH_SOURCE, rgv_id);
 bt_times = bt_times - bag.StartTime;
 bt_projections = bt_projections(bt_times >= plot_focus_time - plot_duration/2 & bt_times <= plot_focus_time + plot_duration/2,:);
 
-[cam_times, cam_projections] = calculate_projections(bag, cam_delay, constants.CAMERA_SOURCE, rgv_id);
+[cam_times, cam_projections] = calculate_projections(bag, poses, cam_delay, constants.CAMERA_SOURCE, rgv_id);
 cam_times = cam_times - bag.StartTime;
 cam_projections = cam_projections(cam_times >= plot_focus_time - plot_duration/2 & cam_times <= plot_focus_time + plot_duration/2,:);
 
