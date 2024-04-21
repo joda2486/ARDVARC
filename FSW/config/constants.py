@@ -32,20 +32,16 @@ MEAS_FROM_BLUETOOTH: int = 11
 
 
 """Pi Camera Parameters"""
-## CALCULATED BASED ON TEST FOOTAGE fx = image width * focal length / sensor width
-INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[1910.0, 0, 320], [0, 1910.0, 240], [0, 0, 1]])
-## TODO This Needs to be updated to the true camera intrinsic parameters(TB - USED CHARUCO BOARD TO GET THIS VALUE FOR TELEPHOTO LENSE)
-# INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[4.64564718e+03, 0.00000000e+00, 7.69641498e+02], [0.00000000e+00, 4.64673256e+03, 5.43461963e+02], [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0, 0.0]) # No distortion for testing
-
-## TODO This Needs to be updated to the true camera distortion parameters(TB - USED CHARUCO BOARD TO GET THIS VALUE FOR TELEPHOTO LENSE)
-# DISTORTION: npt.NDArray = np.array([-2.03742620e-01,  8.18152763e-01,  1.25496275e-04,  3.04049720e-03, 4.41302771e+00])	
-
-
+## TODO Could be determined from the camera calibration function from cv2.aruco
+## TODO This Needs to be updated to the true camera intrinsic parameters
+INTRINSICS_PI_CAMERA: npt.NDArray = np.array([[916.6706684, 0, 720], [0, 916.6706684, 540], [0, 0, 1]])
+## TODO This Needs to be updated to the true camera distortion parameters
+## TODO Could be determined from the camera calibration function from cv2.aruco
+DISTORTION: npt.NDArray = np.array([0.0, 0.0, 0.0, 0.0])
 ## TODO Update the formatting of the camera extrinsic parameters
 ## TODO Configure a way to get the camera extrinsic parameters accurately
-EXTRINSICS_PI_CAMERA_DCM: npt.NDArray = np.array([[1.0, 0.0, 0.0], [0.0, 1.0, 0.0], [0.0, 0.0, 1.0]]) #DCM From UAS 2 Camera
-EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.0], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
+EXTRINSICS_PI_CAMERA_DCM: npt.NDArray = Rotation.from_euler("ZY", (90, 180), degrees=True).as_matrix() #DCM From UAS 2 Camera
+EXTRINSICS_PI_CAMERA_TVEC: npt.NDArray = np.array([[0.2], [0.0], [0.0]]) #tvec for Camera from UAS in UAS Frame
 ## TODO Verify the units on this, I think it needs to match the calibration units (mm)
 MARKER_SIZE: float = .352 # meters (15 inches)
 
@@ -97,7 +93,7 @@ ARUCO_DICT = {
 DICTIONARY: cv2.aruco.Dictionary = cv2.aruco.getPredefinedDictionary(cv2.aruco.DICT_6X6_50)
 
 """State Machine Criteria"""
-RECENT_ESTIMATE_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(2)
+RECENT_ESTIMATE_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(4)
 LOCALIZE_DURATION: rospy.Duration = rospy.Duration.from_sec(90)
 JOINT_DURATION: rospy.Duration = rospy.Duration.from_sec(240)
 RECENT_SIGHTING_TIME_CUTOFF: rospy.Duration = rospy.Duration.from_sec(2)
@@ -135,3 +131,14 @@ AERO_BACKYARD_APPROX_ALT = 1614.001932 # meters
 CENTER_SETPOINT = [0,0,0]
 HOME_SETPOINT = [-10,-10,0]
 
+"""Estimator"""
+SPEED_THRESHOLD = 0.3 # m/s
+
+BLUETOOTH_WEIGHT = 1
+CAMERA_WEIGHT = 100
+IDEAL_TOTAL_WEIGHT = 200
+
+MAX_PLAUSIBLE_RGV_SPEED = 3 # m/s
+MISSION_AREA_HALF_WIDTH = 22.86 # m
+ESTIMATE_HISTORY_DURATION = 2 # s
+MAX_BLIND_FOLLOW_DURATION = 2 # s

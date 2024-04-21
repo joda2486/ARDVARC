@@ -56,6 +56,8 @@ _mission_state_sub: rospy.Subscriber
 _uas_pose_sub: rospy.Subscriber
 _uas_arming_state_sub: rospy.Subscriber
 
+_timer: rospy.Timer
+
 offboard_start_time = None
 
 RGV_state = EstimatedRgvState()
@@ -131,16 +133,12 @@ def _timer_callback(event=None):
         _setpoint_pub.publish(current_setpoint)
         rospy.logdebug(f"Guidance published an orbit setpoint: {current_setpoint}")
 
-
-# make the timer?? real time?? Ahh manmade multithreading horrors beyond my comprehension
-rospy.Timer(rospy.Duration(0.05), _timer_callback)
-
 def setup():
     """
     Setup publishers and subscribers for guidance.py
     """
     
-    global _setpoint_pub, _estimated_rgv_state_sub, _mission_state_sub, _uas_pose_sub, _uas_arming_state_sub
+    global _setpoint_pub, _estimated_rgv_state_sub, _mission_state_sub, _uas_pose_sub, _uas_arming_state_sub, _timer
  
     # make all subs and pubs
     _setpoint_pub = rospy.Publisher(UAS_SETPOINT_LOCAL, PoseStamped, queue_size=10)
@@ -164,6 +162,8 @@ def setup():
         rate = rospy.Rate(20)
         _setpoint_pub.publish(dummy_set_point)
         rate.sleep()
+    
+    _timer = rospy.Timer(rospy.Duration(0.05), _timer_callback)
 
 
 def _calc_orbit_setpoint_find(mission_state: MissionState, RGV: EstimatedRgvState, UAS: PoseStamped, start_time: rospy.Time, offboard_status: bool) -> list:

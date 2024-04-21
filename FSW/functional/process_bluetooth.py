@@ -8,11 +8,11 @@ def _bluetooth_callback(msg: BluetoothAzimuthElevation):
     
     rospy.logdebug("Bluetooth processor received raw bluetooth data")
     rospy.logdebug("Bluetooth processor published a direction vector")
-    _direction_vector_pub.publish(
-        UasToRgvDirectionVectorUasFrame(
-            # TODO: Make this something reasonable
-        )
-    )
+    # _direction_vector_pub.publish(
+    #     UasToRgvDirectionVectorUasFrame(
+    #         # TODO: Make this something reasonable
+    #     )
+    # )
 
 
 def setup():
