@@ -24,17 +24,19 @@ hold on
 colors = ["#0072BD", "#D95319", "#EDB120", "#7E2F8E", "#77AC30", "#4DBEEE", "#A2142F"];
 linestyles = ["-", "--", "-.", ":"];
 
-disp("Trying different delays...")
 poses = extract_uas_poses(bag);
+direction_vectors = extract_direction_vectors(bag);
+
+disp("Trying different delays...")
 for i = 1:length(delays)
     disp(i + "/" + length(delays))
     delay = delays(i);
 
-    [times, post_projections] = calculate_projections(bag, poses, delay, measurement_source, rgv_id);
+    post_projections = calculate_projections(poses, direction_vectors, delay, measurement_source, rgv_id);
     
     color = colors(mod(i-1,length(colors))+1);
     linestyle = linestyles(floor((i-1)/length(colors))+1);
-    plot(times - times(1), 2*sqrt(sum(movstd(post_projections, window_size, "SamplePoints", times).^2, 2)), DisplayName=string(delay), Color=color, LineStyle=linestyle)
+    plot(post_projections.Time, 2*sqrt(sum(movstd(post_projections.Position, window_size, "SamplePoints", post_projections.Time).^2, 2)), DisplayName=string(delay), Color=color, LineStyle=linestyle)
 end
 
 legend(Location="best")

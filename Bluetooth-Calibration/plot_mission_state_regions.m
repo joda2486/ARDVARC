@@ -11,16 +11,16 @@ function plot_mission_state_regions(fig, bag, ymin, ymax)
     grid on
     grid minor
     
-    changes = [false, mission_states.mission_states(1:end-1) ~= mission_states.mission_states(2:end)];
-    change_times = mission_states.times(changes) - bag.StartTime;
+    changes = [false; mission_states.MissionState(1:end-1) ~= mission_states.MissionState(2:end)];
+    change_times = mission_states.Time(changes)';
     xs = [[xmin change_times];[change_times, xmax];[change_times, xmax];[xmin change_times]];
     ys = [(ones(length(change_times)+1,2)*ymin)';(ones(length(change_times)+1,2)*ymax)'];
     
     colors = [[255, 0, 0];[255, 162, 0];[255, 225, 0];[127, 255, 0];[0, 255, 255];[0, 0, 255];[127, 0, 255]]/255;
-    min_state = min(mission_states.mission_states);
-    max_state = max(mission_states.mission_states);
+    min_state = min(mission_states.MissionState);
+    max_state = max(mission_states.MissionState);
     colors = colors(min_state+1:max_state+1,:);
     
-    fill(xs,ys,[mission_states.mission_states(1), mission_states.mission_states(changes)], EdgeColor="none", FaceAlpha=0.1);
+    fill(xs,ys,[mission_states.MissionState(1), mission_states.MissionState(changes)'], EdgeColor="none", FaceAlpha=0.1);
     colormap(colors)
 end

@@ -1,13 +1,16 @@
-% Extracts UAS poses from a bag and puts them into a nicer struct
+% Extracts UAS poses from a bag and puts them into a table
 function poses = extract_uas_poses(bag)
     poses_select = select(bag, "Topic", "/mavros/local_position/pose");
-    poses_msgs = cell2mat(readMessages(poses_select,'DataFormat','struct'));
-    pose_header_msgs = [poses_msgs.Header];
-    pose_time_msgs = [pose_header_msgs.Stamp];
-    poses.times = double([pose_time_msgs.Sec]) + 1e-9 * double([pose_time_msgs.Nsec]);
-    pose_pose_msgs = [poses_msgs.Pose];
-    pose_position_msgs = [pose_pose_msgs.Position];
-    poses.positions = [pose_position_msgs.X; pose_position_msgs.Y; pose_position_msgs.Z];
-    pose_quaternion_msgs = [pose_pose_msgs.Orientation];
-    poses.quaternions = [pose_quaternion_msgs.W; pose_quaternion_msgs.X; pose_quaternion_msgs.Y; pose_quaternion_msgs.Z]';
+    poses = struct2table(cell2mat(readMessages(poses_select,'DataFormat','struct')));
+    poses.MessageType = [];
+    headers = [poses.Header];
+    stamps = [headers.Stamp];
+    poses.Time = double([stamps.Sec]') + 1e-9 * double([stamps.Nsec]') - bag.StartTime;
+    poses.Header = [];
+    p = poses.Pose;
+    positions = [p.Position];
+    poses.Position = [positions.X; positions.Y; positions.Z]';
+    orientation = [p.Orientation];
+    poses.Orientation = [orientation.W; orientation.X; orientation.Y; orientation.Z]';
+    poses.Pose = [];
 end
