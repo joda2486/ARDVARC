@@ -31,6 +31,8 @@ bluetooth_projections_rgv2 = calculate_projections(poses,bluetooth_direction_vec
 cv_projections_rgv1 = calculate_projections(poses,cv_direction_vectors,ideal_bluetooth_delay,constants.CAMERA_SOURCE,1);
 cv_projections_rgv2 = calculate_projections(poses,cv_direction_vectors,ideal_bluetooth_delay,constants.CAMERA_SOURCE,2);
 
+
+
 disp("Calculating camera-only estimates")
 estimate_times = 0:constants.ESTIMATE_GAP:(bag.EndTime-bag.StartTime);
 rgv1_coarse_estimates = zeros(length(estimate_times),2);
@@ -98,65 +100,133 @@ rgv2_coarse_estimates = rgv2_coarse_estimates(rgv2_coarse_index-coarse_half_inde
 rgv1_fine_estimates = rgv1_fine_estimates(rgv1_fine_index-fine_half_index_offset:rgv1_fine_index+fine_half_index_offset,:);
 rgv2_fine_estimates = rgv2_fine_estimates(rgv2_fine_index-fine_half_index_offset:rgv2_fine_index+fine_half_index_offset,:);
 
+
+disp("Loading the truth RGV estimates")
+%%Assign the Truth Values
+% [file, location] = uigetfile("*.bag"); %%Use the UI to grab the truth
+% vector
+truth_joint_1 = [3.9793  -12.9183];
+truth_joint_2 = [3.0090   -3.8419];
+truth_coarse_1 = [3.9793  -12.9183];
+truth_coarse_2 = [3.0090   -3.8419];
+truth_fine_1 = [3.9793  -12.9183];
+truth_fine_2 = [3.0090   -3.8419];
+
+
+rgv1_joint_truth = ones(length(rgv1_joint_estimates),2) .* truth_joint_1;
+rgv2_joint_truth = ones(length(rgv2_joint_estimates),2) .* truth_joint_2;
+rgv1_coarse_truth = ones(length(rgv1_coarse_estimates),2) .* truth_coarse_1;
+rgv2_coarse_truth = ones(length(rgv2_coarse_estimates),2) .* truth_coarse_2;
+rgv1_fine_truth = ones(length(rgv1_fine_estimates),2) .* truth_fine_1;
+rgv2_fine_truth = ones(length(rgv2_fine_estimates),2) .* truth_fine_2;
+
+joint_time = estimate_times(joint_index-joint_half_index_offset:joint_index+joint_half_index_offset);
+course_1_time = estimate_times(rgv1_coarse_index-coarse_half_index_offset:rgv1_coarse_index+coarse_half_index_offset);
+course_2_time = estimate_times(rgv2_coarse_index-coarse_half_index_offset:rgv2_coarse_index+coarse_half_index_offset);
+fine_1_time = estimate_times(rgv1_fine_index-fine_half_index_offset:rgv1_fine_index+fine_half_index_offset);
+fine_2_time = estimate_times(rgv2_fine_index-fine_half_index_offset:rgv2_fine_index+fine_half_index_offset);
+
+disp("Calculating the 2DRMS at the estimates")
+twodrms_coarse_1 = calculate_best_windowed_2drms_truth(rgv1_coarse_estimates,course_1_time,rgv1_coarse_truth,course_1_time);
+twodrms_coarse_2 = calculate_best_windowed_2drms_truth(rgv2_coarse_estimates,course_2_time,rgv2_coarse_truth,course_2_time);
+twodrms_fine_1 = calculate_best_windowed_2drms_truth(rgv1_fine_estimates,fine_1_time,rgv1_fine_truth,fine_1_time);
+twodrms_fine_2 = calculate_best_windowed_2drms_truth(rgv2_fine_estimates,fine_2_time,rgv2_fine_truth,fine_2_time);
+twodrms_joint_1 = calculate_best_windowed_2drms_truth(rgv1_joint_estimates,joint_time,rgv1_joint_truth,joint_time);
+twodrms_joint_2 = calculate_best_windowed_2drms_truth(rgv2_joint_estimates,joint_time,rgv2_joint_truth,joint_time);
+
+fprintf("RGV 1 Coarse Localization 2DRMS: %2.2f\n", twodrms_coarse_1)
+fprintf("RGV 2 Coarse Localization 2DRMS: %2.2f\n", twodrms_coarse_2)
+fprintf("RGV 1 Fine Localization 2DRMS: %2.2f\n", twodrms_fine_1)
+fprintf("RGV 2 Fine Localization 2DRMS: %2.2f\n", twodrms_fine_2)
+fprintf("RGV 1 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_1)
+fprintf("RGV 2 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_2)
+
+%% Plotting 
+close all;
 % RGV 1 Coarse
-figure
-error_ellipse(rgv1_coarse_estimates);
+figure;hold on;
+[P1,P69] = error_ellipse(rgv1_coarse_estimates);
+P2 = plot(truth_coarse_1(1),truth_coarse_1(2),'.','Color','b','MarkerSize',10);
+P3 = viscircles(truth_coarse_1,twodrms_coarse_1,'Color','b');
+P4 = viscircles(truth_coarse_1,2,'Color','g');
 axis equal
 grid on
 grid minor
 title("RGV 1 Coarse")
-legend
+legend([P1,P69,P2,P3,P4],"Estimates","95% Confidence Interval","True Location","Calculated 2DRMS","2 Meter 2DRMS")
 xlabel("E [m]")
 ylabel("N [m]")
 % RGV 2 Coarse
-figure
-error_ellipse(rgv2_coarse_estimates);
+figure; hold on;
+[P1,P69] = error_ellipse(rgv2_coarse_estimates);
+P2 = plot(truth_coarse_2(1),truth_coarse_2(2),'.','Color','b','MarkerSize',10);
+P3 = viscircles(truth_coarse_2,twodrms_coarse_1,'Color','b');
+P4 = viscircles(truth_coarse_2,2,'Color','g');
 axis equal
 grid on
 grid minor
 title("RGV 2 Coarse")
-legend
+legend([P1,P69,P2,P3,P4],"Estimates","95% Confidence Interval","True Location","Calculated 2DRMS","2 Meter 2DRMS")
 xlabel("E [m]")
 ylabel("N [m]")
 % RGV 1 Fine
-figure
-error_ellipse(rgv1_fine_estimates);
+figure; hold on;
+[P1,P69] = error_ellipse(rgv1_fine_estimates);
+P2 = plot(truth_fine_1(1),truth_fine_1(2),'.','Color','b','MarkerSize',10);
+P3 = viscircles(truth_fine_1,twodrms_fine_1,'Color','b');
+P4 = viscircles(truth_fine_1,1,'Color','g');
 axis equal
 grid on
 grid minor
 title("RGV 1 Fine")
-legend
+legend([P1,P69,P2,P3,P4],"Estimates","95% Confidence Interval","True Location","Calculated 2DRMS","1 Meter 2DRMS")
 xlabel("E [m]")
 ylabel("N [m]")
 % RGV 2 Fine
-figure
-error_ellipse(rgv2_fine_estimates);
+figure; hold on;
+[P1,P69] = error_ellipse(rgv2_fine_estimates);
+P2 = plot(truth_fine_2(1),truth_fine_2(2),'.','Color','b','MarkerSize',10);
+P3 = viscircles(truth_fine_2,twodrms_fine_1,'Color','b');
+P4 = viscircles(truth_fine_2,1,'Color','g');
 axis equal
 grid on
 grid minor
 title("RGV 2 Fine")
-legend
+legend([P1,P69,P2,P3,P4],"Estimates","95% Confidence Interval","True Location","Calculated 2DRMS","1 Meter 2DRMS")
 xlabel("E [m]")
 ylabel("N [m]")
 % Joint
-figure
+figure;hold on;
+[P1,P69] = error_ellipse(rgv1_joint_estimates);
+P2 = plot(truth_joint_1(1),truth_joint_1(2),'.','Color','b','MarkerSize',10);
+P3 = viscircles(truth_joint_1,twodrms_joint_1,'Color','b');
+P4 = viscircles(truth_joint_1,1,'Color','g');
+
 [data_plot1, ellipse_plot1] = error_ellipse(rgv1_joint_estimates);
-[data_plot2, ellipse_plot2] = error_ellipse(rgv2_joint_estimates);
-data_plot1.MarkerFaceColor = 'r';
-data_plot1.MarkerEdgeColor = 'r';
-ellipse_plot1.Color = "r";
-ellipse_plot1.LineStyle = "--";
-data_plot2.MarkerFaceColor = 'b';
-data_plot2.MarkerEdgeColor = 'b';
-ellipse_plot2.Color = "b";
-ellipse_plot2.LineStyle = "--";
+[P11,P691] = error_ellipse(rgv2_joint_estimates);
+P21 = plot(truth_joint_2(1),truth_joint_2(2),'o','Color','b','MarkerSize',10);
+P31 = viscircles(truth_joint_2,twodrms_joint_2,'Color','b','LineStyle','--');
+P41 = viscircles(truth_joint_2,1,'Color','g','LineStyle','--');
+
+P691.Color = "r";
+P691.LineStyle = "--";
 axis equal
 grid on
 grid minor
 title("Fine Localization")
-legend
+legend([P1,P69,P2,P3,P4,P11,P691,P21,P31,P41],"Estimates - RGV1","95% Confidence Interval - RGV1","True Location - RGV1","Calculated 2DRMS - RGV1","1 Meter 2DRMS - RGV1","Estimates - RGV2","95% Confidence Interval - RGV2","True Location - RGV2","Calculated 2DRMS - RGV2","1 Meter 2DRMS - RGV2")
 xlabel("E [m]")
 ylabel("N [m]")
+
+mission_states = extract_mission_states(bag);
+figure;hold on;
+axis equal
+grid on
+grid minor
+title("Mission States Over Time")
+plot(mission_states.Time, mission_states.MissionState)
+axis([0 303 -1 7])clc
+axis square
 
 
 

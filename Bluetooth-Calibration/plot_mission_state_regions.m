@@ -21,6 +21,6 @@ function plot_mission_state_regions(fig, bag, ymin, ymax)
     max_state = max(mission_states.MissionState);
     colors = colors(min_state+1:max_state+1,:);
     
-    fill(xs,ys,[mission_states.MissionState(1), mission_states.MissionState(changes)'], EdgeColor="none", FaceAlpha=0.1);
+    fill(xs,ys,[mission_states.MissionState(1), mission_states.MissionState(changes)'], EdgeColor="none", FaceAlpha=0.8);
     colormap(colors)
 end
