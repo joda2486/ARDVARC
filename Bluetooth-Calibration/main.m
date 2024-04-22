@@ -105,12 +105,12 @@ disp("Loading the truth RGV estimates")
 %%Assign the Truth Values
 % [file, location] = uigetfile("*.bag"); %%Use the UI to grab the truth
 % vector
-truth_joint_1 = [3.9793  -12.9183];
-truth_joint_2 = [3.0090   -3.8419];
-truth_coarse_1 = [3.9793  -12.9183];
-truth_coarse_2 = [3.0090   -3.8419];
-truth_fine_1 = [3.9793  -12.9183];
-truth_fine_2 = [3.0090   -3.8419];
+truth_joint_1 = [2.8571   -5.1485];
+truth_joint_2 = [-1.8023   -4.9880];
+truth_coarse_1 = [2.8571   -5.1485];
+truth_coarse_2 = [-1.8023   -4.9880];
+truth_fine_1 = [2.8571   -5.1485];
+truth_fine_2 = [-1.8023   -4.9880];
 
 
 rgv1_joint_truth = ones(length(rgv1_joint_estimates),2) .* truth_joint_1;
@@ -223,9 +223,9 @@ figure;hold on;
 axis equal
 grid on
 grid minor
-title("Mission States Over Time")
+title("Mission States Over Time")qa
 plot(mission_states.Time, mission_states.MissionState)
-axis([0 303 -1 7])clc
+axis([0 (mission_states.Time(end)+5) -1 7])
 axis square
 
 
