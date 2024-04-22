@@ -160,7 +160,7 @@ ylabel("N [m]")
 figure; hold on;
 [P1,P69] = error_ellipse(rgv2_coarse_estimates);
 P2 = plot(truth_coarse_2(1),truth_coarse_2(2),'.','Color','b','MarkerSize',10);
-P3 = viscircles(truth_coarse_2,twodrms_coarse_1,'Color','b');
+P3 = viscircles(truth_coarse_2,twodrms_coarse_2,'Color','b');
 P4 = viscircles(truth_coarse_2,2,'Color','g');
 axis equal
 grid on
@@ -186,7 +186,7 @@ ylabel("N [m]")
 figure; hold on;
 [P1,P69] = error_ellipse(rgv2_fine_estimates);
 P2 = plot(truth_fine_2(1),truth_fine_2(2),'.','Color','b','MarkerSize',10);
-P3 = viscircles(truth_fine_2,twodrms_fine_1,'Color','b');
+P3 = viscircles(truth_fine_2,twodrms_fine_2,'Color','b');
 P4 = viscircles(truth_fine_2,1,'Color','g');
 axis equal
 grid on
@@ -202,7 +202,6 @@ P2 = plot(truth_joint_1(1),truth_joint_1(2),'.','Color','b','MarkerSize',10);
 P3 = viscircles(truth_joint_1,twodrms_joint_1,'Color','b');
 P4 = viscircles(truth_joint_1,1,'Color','g');
 
-[data_plot1, ellipse_plot1] = error_ellipse(rgv1_joint_estimates);
 [P11,P691] = error_ellipse(rgv2_joint_estimates);
 P21 = plot(truth_joint_2(1),truth_joint_2(2),'o','Color','b','MarkerSize',10);
 P31 = viscircles(truth_joint_2,twodrms_joint_2,'Color','b','LineStyle','--');
