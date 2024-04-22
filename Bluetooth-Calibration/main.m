@@ -100,17 +100,17 @@ rgv2_coarse_estimates = rgv2_coarse_estimates(rgv2_coarse_index-coarse_half_inde
 rgv1_fine_estimates = rgv1_fine_estimates(rgv1_fine_index-fine_half_index_offset:rgv1_fine_index+fine_half_index_offset,:);
 rgv2_fine_estimates = rgv2_fine_estimates(rgv2_fine_index-fine_half_index_offset:rgv2_fine_index+fine_half_index_offset,:);
 
-
+%% ERE
 disp("Loading the truth RGV estimates")
 %%Assign the Truth Values
 % [file, location] = uigetfile("*.bag"); %%Use the UI to grab the truth
 % vector
-truth_joint_1 = [2.8571   -5.1485];
-truth_joint_2 = [-1.8023   -4.9880];
-truth_coarse_1 = [2.8571   -5.1485];
-truth_coarse_2 = [-1.8023   -4.9880];
-truth_fine_1 = [2.8571   -5.1485];
-truth_fine_2 = [-1.8023   -4.9880];
+truth_joint_1 = [3.3685 -4.8270];
+truth_joint_2 = [-1.7722 -4.8270];
+truth_coarse_1 = [3.3685 -4.8270];
+truth_coarse_2 = [-1.7722 -4.8270];
+truth_fine_1 = [3.3685 -4.8270];
+truth_fine_2 = [-1.7722 -4.8270];
 
 
 rgv1_joint_truth = ones(length(rgv1_joint_estimates),2) .* truth_joint_1;
@@ -141,7 +141,7 @@ fprintf("RGV 2 Fine Localization 2DRMS: %2.2f\n", twodrms_fine_2)
 fprintf("RGV 1 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_1)
 fprintf("RGV 2 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_2)
 
-%% Plotting 
+%%Plotting 
 close all;
 % RGV 1 Coarse
 figure;hold on;
@@ -212,7 +212,7 @@ P691.LineStyle = "--";
 axis equal
 grid on
 grid minor
-title("Fine Localization")
+title("Joint Localization")
 legend([P1,P69,P2,P3,P4,P11,P691,P21,P31,P41],"Estimates - RGV1","95% Confidence Interval - RGV1","True Location - RGV1","Calculated 2DRMS - RGV1","1 Meter 2DRMS - RGV1","Estimates - RGV2","95% Confidence Interval - RGV2","True Location - RGV2","Calculated 2DRMS - RGV2","1 Meter 2DRMS - RGV2")
 xlabel("E [m]")
 ylabel("N [m]")
