@@ -15,26 +15,20 @@ function cv_direction_vectors = cv_post(bag)
     
     tic
     for i = 1:length(camera_msgs)
-        camera_matrix = rosReadImage(camera_msgs(i));
-    
-        [id,~,pose] = readAprilTag(camera_matrix, "DICT_4X4_50",intrinsics,marker_size);
+        camera_matrix = rosReadImage(camera_msgs(i));    
+        [id,~,pose] = readArucoMarker(camera_matrix, "DICT_4x4_50",intrinsics,marker_size);
         for idx = 1:length(id)
-            if (id ~= 4)
+            if id == 4
+                Time(end+1) = camera_times(i);
+                Direction(end+1,:) = pose(idx).Translation;
+                RgvId(end+1) = 1;
+            elseif id == 5
+                Time(end+1) = camera_times(i);
+                Direction(end+1,:) = pose(idx).Translation;
+                RgvId(end+1) = 2;
+            else
                 disp("Got weird aruco id? : " + id)
             end
-            Time(end+1) = camera_times(i);
-            Direction(end+1,:) = pose(idx).Translation;
-            RgvId(end+1) = 2;
-        end
-    
-        [id,~,pose] = readArucoMarker(camera_matrix, "DICT_4X4_50",intrinsics,marker_size);
-        for idx = 1:length(id)
-            if (id ~= 5)
-                disp("Got weird aruco id? : " + id)
-            end
-            Time(end+1) = camera_times(i);
-            Direction(end+1,:) = pose(idx).Translation;
-            RgvId(end+1) = 1;
         end
     end
     toc
