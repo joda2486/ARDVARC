@@ -28,8 +28,8 @@ fprintf("Camera Delay: %2.2f\n", ideal_camera_delay)
 disp("Calculating projections for each RGV and sensor")
 bluetooth_projections_rgv1 = calculate_projections(poses,bluetooth_direction_vectors,ideal_bluetooth_delay,constants.BLUETOOTH_SOURCE,1);
 bluetooth_projections_rgv2 = calculate_projections(poses,bluetooth_direction_vectors,ideal_bluetooth_delay,constants.BLUETOOTH_SOURCE,2);
-cv_projections_rgv1 = calculate_projections(poses,cv_direction_vectors,ideal_bluetooth_delay,constants.CAMERA_SOURCE,1);
-cv_projections_rgv2 = calculate_projections(poses,cv_direction_vectors,ideal_bluetooth_delay,constants.CAMERA_SOURCE,2);
+cv_projections_rgv1 = calculate_projections(poses,cv_direction_vectors,ideal_camera_delay,constants.CAMERA_SOURCE,1);
+cv_projections_rgv2 = calculate_projections(poses,cv_direction_vectors,ideal_camera_delay,constants.CAMERA_SOURCE,2);
 
 
 
@@ -52,32 +52,30 @@ for i = 1:length(estimate_times)
     rgv2_fine_estimates(i,:) = calculate_estimate(bluetooth_projections_rgv2, cv_projections_rgv2, estimate_time, constants.ESTIMATE_WINDOW_SIZE);
 end
 
-disp("Calculating windowed unbiased 2DRMS for both estimate types and RGVs")
+disp("Determining windows of coarse and fine data")
 coarse_half_index_offset = ceil(30/constants.ESTIMATE_GAP);
 fine_half_index_offset = ceil(15/constants.ESTIMATE_GAP);
 joint_half_index_offset = ceil(20/constants.ESTIMATE_GAP);
 coarse_fine_index_offset = ceil(45/constants.ESTIMATE_GAP);
 rgv1_coarse_2drms = calculate_windowed_unbiased_2drms(rgv1_coarse_estimates, estimate_times, 60);
-rgv1_coarse_2drms(1:coarse_half_index_offset) = NaN;
-rgv1_coarse_2drms(end-coarse_half_index_offset-2*fine_half_index_offset:end) = NaN;
 rgv2_coarse_2drms = calculate_windowed_unbiased_2drms(rgv2_coarse_estimates, estimate_times, 60);
-rgv2_coarse_2drms(1:coarse_half_index_offset) = NaN;
-rgv2_coarse_2drms(end-coarse_half_index_offset-2*fine_half_index_offset:end) = NaN;
 rgv1_fine_2drms = calculate_windowed_unbiased_2drms(rgv1_fine_estimates, estimate_times, 30);
 rgv2_fine_2drms = calculate_windowed_unbiased_2drms(rgv2_fine_estimates, estimate_times, 30);
 rgv1_joint_2drms = calculate_windowed_unbiased_2drms(rgv1_fine_estimates, estimate_times, 20);
 rgv2_joint_2drms = calculate_windowed_unbiased_2drms(rgv2_fine_estimates, estimate_times, 20);
-rgv1_joint_2drms(1:fine_half_index_offset) = NaN;
-rgv2_joint_2drms(1:fine_half_index_offset) = NaN;
 
-disp("Determining best windows of coarse and fine data")
-rgv1_2drms_cost = rgv1_coarse_2drms(1:end-coarse_fine_index_offset+1) + rgv1_fine_2drms(coarse_fine_index_offset:end);
-rgv2_2drms_cost = rgv2_coarse_2drms(1:end-coarse_fine_index_offset+1) + rgv2_fine_2drms(coarse_fine_index_offset:end);
-[~,rgv1_coarse_index] = min(rgv1_2drms_cost);
-rgv2_2drms_cost(rgv1_coarse_index-coarse_half_index_offset:rgv1_coarse_index+coarse_half_index_offset+2*fine_half_index_offset) = NaN;
-[~,rgv2_coarse_index] = min(rgv2_2drms_cost);
-rgv1_fine_index = rgv1_coarse_index + coarse_fine_index_offset;
-rgv2_fine_index = rgv2_coarse_index + coarse_fine_index_offset;
+mission_states = extract_mission_states(bag);
+final_rgv1_localize_state_index = find(mission_states.MissionState == 2, 1, "last");
+final_rgv2_localize_state_index = find(mission_states.MissionState == 5, 1, "last");
+final_rgv1_localize_time = mission_states.Time(final_rgv1_localize_state_index);
+final_rgv2_localize_time = mission_states.Time(final_rgv2_localize_state_index);
+final_rgv1_localize_index = find(estimate_times <= final_rgv1_localize_time, 1, "last");
+final_rgv2_localize_index = find(estimate_times <= final_rgv2_localize_time, 1, "last");
+rgv1_coarse_index = final_rgv1_localize_index - 75/constants.ESTIMATE_GAP;
+rgv1_fine_index = final_rgv1_localize_index - 30/constants.ESTIMATE_GAP;
+rgv2_coarse_index = final_rgv2_localize_index - 75/constants.ESTIMATE_GAP;
+rgv2_fine_index = final_rgv2_localize_index - 30/constants.ESTIMATE_GAP;
+
 
 fprintf("RGV 1 Coarse Localization Unbiased 2DRMS: %2.2f\n", rgv1_coarse_2drms(rgv1_coarse_index))
 fprintf("RGV 2 Coarse Localization Unbiased 2DRMS: %2.2f\n", rgv2_coarse_2drms(rgv2_coarse_index))
@@ -86,9 +84,9 @@ fprintf("RGV 2 Fine Localization Unbiased 2DRMS: %2.2f\n", rgv2_fine_2drms(rgv2_
 
 disp("Determining best window of joint data")
 joint_2drms_cost = rgv1_fine_2drms.^2+rgv2_fine_2drms.^2;
-% joint_2drms_cost(1:rgv1_fine_index+fine_half_index_offset+joint_half_index_offset) = NaN;
-% joint_2drms_cost(1:rgv2_fine_index+fine_half_index_offset+joint_half_index_offset) = NaN;
-% joint_2drms_cost = joint_2drms_cost(1:length(estimate_times));
+joint_2drms_cost(1:rgv1_fine_index+40/constants.ESTIMATE_GAP) = NaN;
+joint_2drms_cost(1:rgv2_fine_index+40/constants.ESTIMATE_GAP) = NaN;
+joint_2drms_cost = joint_2drms_cost(1:length(estimate_times));
 [~,joint_index] = min(joint_2drms_cost);
 fprintf("RGV 1 Joint Localization Unbiased 2DRMS: %2.2f\n", rgv1_fine_2drms(joint_index))
 fprintf("RGV 2 Joint Localization Unbiased 2DRMS: %2.2f\n", rgv2_fine_2drms(joint_index))
@@ -238,8 +236,6 @@ plot(estimate_times, rgv1_coarse_2drms, "r", DisplayName="RGV 1 Coarse")
 plot(estimate_times, rgv2_coarse_2drms, "b", DisplayName="RGV 2 Coarse")
 plot(estimate_times, rgv1_fine_2drms, "r--", DisplayName="RGV 1 Fine")
 plot(estimate_times, rgv2_fine_2drms, "b--", DisplayName="RGV 2 Fine")
-plot(estimate_times(1:end-coarse_fine_index_offset+1), rgv1_2drms_cost, "r:", DisplayName="RGV 1 Cost")
-plot(estimate_times(1:end-coarse_fine_index_offset+1), rgv2_2drms_cost, "b:", DisplayName="RGV 2 Cost")
 plot(estimate_times, rgv1_joint_2drms, "k", DisplayName="RGV 1 Joint")
 plot(estimate_times, rgv2_joint_2drms, "k--", DisplayName="RGV 2 Joint")
 plot(estimate_times, joint_2drms_cost, "k:", DisplayName="Joint Cost")
