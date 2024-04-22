@@ -223,7 +223,7 @@ figure;hold on;
 axis equal
 grid on
 grid minor
-title("Mission States Over Time")qa
+title("Mission States Over Time")
 plot(mission_states.Time, mission_states.MissionState)
 axis([0 (mission_states.Time(end)+5) -1 7])
 axis square
