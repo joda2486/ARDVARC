@@ -35,6 +35,12 @@ cv_projections_rgv2 = calculate_projections(poses,cv_direction_vectors,ideal_cam
 
 disp("Calculating camera-only estimates")
 estimate_times = 0:constants.ESTIMATE_GAP:(bag.EndTime-bag.StartTime);
+mission_states = extract_mission_states(bag);
+last_joint_index = find(mission_states.MissionState == 6, 1, 'last');
+mission_states = mission_states(1:last_joint_index,:);
+last_joint_time = mission_states.Time(last_joint_index);
+last_estimate_index = find(estimate_times <= last_joint_time, 1, 'last');
+estimate_times = estimate_times(1:last_estimate_index);
 rgv1_coarse_estimates = zeros(length(estimate_times),2);
 rgv2_coarse_estimates = zeros(length(estimate_times),2);
 for i = 1:length(estimate_times)
@@ -64,7 +70,6 @@ rgv2_fine_2drms = calculate_windowed_unbiased_2drms(rgv2_fine_estimates, estimat
 rgv1_joint_2drms = calculate_windowed_unbiased_2drms(rgv1_fine_estimates, estimate_times, 20);
 rgv2_joint_2drms = calculate_windowed_unbiased_2drms(rgv2_fine_estimates, estimate_times, 20);
 
-mission_states = extract_mission_states(bag);
 final_rgv1_localize_state_index = find(mission_states.MissionState == 2, 1, "last");
 final_rgv2_localize_state_index = find(mission_states.MissionState == 5, 1, "last");
 final_rgv1_localize_time = mission_states.Time(final_rgv1_localize_state_index);
