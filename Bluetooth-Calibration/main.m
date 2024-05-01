@@ -156,7 +156,7 @@ fprintf("RGV 2 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_2)
 
 
 
- 
+%% Plot
 close all;
 % RGV 1 Coarse
 figure(1);hold on;
@@ -198,6 +198,7 @@ figure(2); hold on;
 P2 = plot(truth_fine_1(1),truth_fine_1(2),'.','Color','b','MarkerSize',10);
 P3 = viscircles(truth_fine_1,twodrms_fine_1,'Color','b');
 P4 = viscircles(truth_fine_1,1,'Color','g');
+
 
 [P11,P691] = error_ellipse(rgv2_fine_estimates);
 P12 = plot(truth_fine_2(1),truth_fine_2(2),'.','Color','b','MarkerSize',10);
@@ -257,6 +258,10 @@ grid minor
 title("Mission States Over Time")
 plot(mission_states.Time, mission_states.MissionState)
 axis([0 (mission_states.Time(end)+5) -1 7])
+xlabel("Time (s)")
+ylabel("Mission State")
+yticks([-1 0 1 2 3 4 5 6 7])
+yticklabels({' ','RGV1 Find','RGV1 Track','RGV1 Localize','RGV2 Find','RGV2 Track','RGV2 Localize', 'Joint Localization',' '})
 axis square
 
 
@@ -284,7 +289,7 @@ ylim([0 10])
 
 
 % 
-% %%Plotting 
+%%Plotting 
 % close all;
 % % RGV 1 Coarse
 % figure;hold on;
