@@ -9,15 +9,15 @@ dev_E = sqrt((sum((estimates(:,1) - truth_interp(:,1)).^2))/length(estimates(:,1
 dev_N = sqrt((sum((estimates(:,2) - truth_interp(:,2)).^2))/length(estimates(:,2)));
 
 dev_N_Logic = (estimates(:,2) - truth_interp(:,2)).^2 < dev_N*2;
-estimates = estimates.*dev_N_Logic;
-truth_interp = truth_interp.*dev_N_Logic;
+estimates = estimates(dev_N_Logic);
+truth_interp = truth_interp(dev_N_Logic);
 
 dev_E_Logic = (estimates(:,1) - truth_interp(:,1)).^2 < dev_E*2;
-estimates = estimates.*dev_E_Logic;
-truth_interp = truth_interp.*dev_E_Logic;
-
-dev_E = sqrt((sum((estimates(:,1) - truth_interp(:,1)).^2))/length(estimates(:,1)));
-dev_N = sqrt((sum((estimates(:,2) - truth_interp(:,2)).^2))/length(estimates(:,2)));
+estimates = estimates(dev_E_Logic);
+truth_interp = truth_interp(dev_E_Logic);
+% 
+% dev_E = sqrt((sum((estimates(:,1) - truth_interp(:,1)).^2))/length(estimates(:,1)));
+% dev_N = sqrt((sum((estimates(:,2) - truth_interp(:,2)).^2))/length(estimates(:,2)));
 
 truth_2drms = 2 * sqrt(dev_E^2 + dev_N^2);
 

@@ -103,18 +103,27 @@ rgv2_coarse_estimates = rgv2_coarse_estimates(rgv2_coarse_index-coarse_half_inde
 rgv1_fine_estimates = rgv1_fine_estimates(rgv1_fine_index-fine_half_index_offset:rgv1_fine_index+fine_half_index_offset,:);
 rgv2_fine_estimates = rgv2_fine_estimates(rgv2_fine_index-fine_half_index_offset:rgv2_fine_index+fine_half_index_offset,:);
 
-%% ERE
+
+%% HERE
 disp("Loading the truth RGV estimates")
 %%Assign the Truth Values
 % [file, location] = uigetfile("*.bag"); %%Use the UI to grab the truth
 % vector
-truth_joint_1 = [3.3685 -4.8270];
-truth_joint_2 = [-1.7722 -4.8270];
-truth_coarse_1 = [3.3685 -4.8270];
-truth_coarse_2 = [-1.7722 -4.8270];
-truth_fine_1 = [3.3685 -4.8270];
-truth_fine_2 = [-1.7722 -4.8270];
+cone_1_lla = [40.0108 -105.243733 1602.2]; % deg deg meters
+cone_2_lla = [40.010717 -105.243983 1606.6];
+cone_3_lla = [40.01095 -105.243817 1604.2];
+lla_0 = [40.010886 -105.243878 1604.2];
 
+cone_1_ENU = lla2enu(cone_1_lla,lla_0,'flat');
+cone_2_ENU = lla2enu(cone_2_lla,lla_0,'flat');
+cone_3_ENU = lla2enu(cone_3_lla,lla_0,'flat');
+
+truth_joint_1 = cone_3_ENU(1:2);
+truth_joint_2 = cone_3_ENU(1:2);
+truth_coarse_1 = cone_3_ENU(1:2);
+truth_coarse_2 = cone_1_ENU(1:2);
+truth_fine_1 = cone_3_ENU(1:2);
+truth_fine_2 = cone_1_ENU(1:2);
 
 rgv1_joint_truth = ones(length(rgv1_joint_estimates),2) .* truth_joint_1;
 rgv2_joint_truth = ones(length(rgv2_joint_estimates),2) .* truth_joint_2;
@@ -147,8 +156,7 @@ fprintf("RGV 2 Joint Localization 2DRMS: %2.2f\n", twodrms_joint_2)
 
 
 
-
-%% Plotting 
+ 
 close all;
 % RGV 1 Coarse
 figure(1);hold on;
