@@ -34,7 +34,7 @@ cv_projections_rgv2 = calculate_projections(poses,cv_direction_vectors,ideal_cam
 
 
 disp("Calculating camera-only estimates")
-estimate_times = 0:constants.ESTIMATE_GAP:(bag.EndTime-bag.StartTime);
+estimate_times = (0:constants.ESTIMATE_GAP:(bag.EndTime-bag.StartTime))';
 mission_states = extract_mission_states(bag);
 last_joint_index = find(mission_states.MissionState == 6, 1, 'last');
 mission_states = mission_states(1:last_joint_index,:);
@@ -287,6 +287,27 @@ xline(estimate_times(joint_index+joint_half_index_offset), "k", DisplayName="")
 legend(location="best")
 ylim([0 10])
 
+
+
+% LatLon Joint
+figure;
+cone_1_lla = [40.0108 -105.243733 1602.2];
+cone_2_lla = [40.010717 -105.243983 1606.6];
+cone_3_lla = [40.01095 -105.243817 1604.2];
+center_latlon = [40.010886 -105.243878 1604.2];
+rgv1_joint_estimates_latlon = enu2lla([rgv1_joint_estimates, zeros(length(rgv1_joint_estimates),1)], center_latlon, "ellipsoid");
+rgv2_joint_estimates_latlon = enu2lla([rgv2_joint_estimates, zeros(length(rgv2_joint_estimates),1)], center_latlon, "ellipsoid");
+p1 = geoplot(rgv1_joint_estimates_latlon(:,1),rgv1_joint_estimates_latlon(:,2), 'r');
+hold on;
+p2 = geoplot(rgv2_joint_estimates_latlon(:,1),rgv2_joint_estimates_latlon(:,2), 'b');
+% geoplot(center_latlon(:,1),center_latlon(:,2), 'k.', MarkerSize=20);
+p3 = geoplot(cone_1_lla(:,1),cone_1_lla(:,2), 'o', MarkerSize=6, MarkerEdgeColor='k', MarkerFaceColor="y");
+geoplot(cone_2_lla(:,1),cone_2_lla(:,2), 'o', MarkerSize=6, MarkerEdgeColor='k', MarkerFaceColor="y");
+geoplot(cone_3_lla(:,1),cone_3_lla(:,2), 'o', MarkerSize=6, MarkerEdgeColor='k', MarkerFaceColor="y");
+geobasemap satellite
+legend([p1 p2 p3], ["RGV 1 Joint Estimates", "RGV 2 Joint Estimates", "Cones"], Location="northeast")
+geolimits([40.010666587503000, 40.011164847781380], [-1.052442331638102e+02, -1.052434717021226e+02])
+title("RGV Joint Localization Estimates in Lat/Lon")
 
 % 
 %%Plotting 
