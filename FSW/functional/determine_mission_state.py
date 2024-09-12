@@ -1,10 +1,14 @@
 import rospy
 from ..config.structures import MissionStates
-from ..config.topic_names import MISSION_STATES, STATE_MACHINE_CRITERIA
+from ..config.topic_names import MISSION_STATES, STATE_MACHINE_CRITERIA, FORCED_MISSION_STATE, FORCE_MISSION_STATE_SERVICE
 from rosardvarc.msg import MissionState, StateMachineCriteria
+from std_msgs.msg import Bool
+from rosardvarc.srv import ForceMissionState, ForceMissionStateRequest, ForceMissionStateResponse
+from typing import Optional
 
 
 _current_state: MissionStates = MissionStates.FIND_RGV_1
+_forced_state: Optional[MissionStates] = None
 
 
 def _state_machine_criteria_callback(msg: StateMachineCriteria):
@@ -15,7 +19,14 @@ def _state_machine_criteria_callback(msg: StateMachineCriteria):
     
     global _current_state
     # Choose the next mission state based on _current_state and msg
-    _current_state = _determine_next_mission_state(_current_state, msg)
+    if _forced_state is not None:
+        # The state machine is being forced to always give the same state, so return it
+        forced = True
+        _current_state = _forced_state
+    else:
+        # Determine the next mission state dynamically
+        forced = False
+        _current_state = _determine_next_mission_state(_current_state, msg)
     
     # Publish new mission state
     mission_state_msg = MissionState()
@@ -23,7 +34,51 @@ def _state_machine_criteria_callback(msg: StateMachineCriteria):
     mission_state_msg.mission_state = _current_state.value
     _mission_state_pub.publish(mission_state_msg)
     rospy.logdebug("Mission state published")
+    
+    # Publish debug info about whether or not the current state is forced
+    forced_msg = Bool()
+    forced_msg.data = forced
+    _forced_pub.publish(forced_msg)
 
+
+def _force_state_service_handler(request: ForceMissionStateRequest) -> ForceMissionStateResponse:
+    """
+    This is the handler for the force state service.
+    """
+    
+    global _forced_state
+    
+    response = ForceMissionStateResponse()
+    response.success = False
+    response.message = "Something weird happened"
+    
+    if request.force:
+        # Force requested state
+        if request.mission_state == _forced_state:
+            # We are already forced into that state, so complain
+            response.success = False
+            response.message = f"Already forced to be in state {str(MissionStates(request.mission_state))}"
+        elif not any(x.value == request.mission_state for x in MissionStates):
+            # The specified mission state does not exist
+            response.success = False
+            response.message = f"Unrecognized state number {request.mission_state}"
+        else:
+            _forced_state = MissionStates(request.mission_state)
+            response.success = True
+            response.message = f"Forced state {str(MissionStates(request.mission_state))}"
+    else:
+        # Clear forced state
+        if _forced_state == None:
+            # We are not currently forced into a state, so complain
+            response.success = False
+            response.message = "Not currently forced to be in any state"
+        else:
+            _forced_state = None
+            response.success = True
+            response.message = "Cleared forced state"
+    
+    return response
+            
 
 def _determine_next_mission_state(current_state: MissionStates, criteria: StateMachineCriteria) -> MissionStates:
     """
@@ -117,10 +172,14 @@ def setup():
     Setup publishers and subscribers for determine_mission_state.py
     """
     
-    global _mission_state_pub, _state_machine_criteria_sub
+    global _mission_state_pub, _state_machine_criteria_sub, _forced_pub, _force_state_service
     _mission_state_pub = rospy.Publisher(MISSION_STATES, MissionState, queue_size=1)
     _state_machine_criteria_sub = rospy.Subscriber(STATE_MACHINE_CRITERIA, StateMachineCriteria, _state_machine_criteria_callback)
+    _forced_pub = rospy.Publisher(FORCED_MISSION_STATE, Bool, queue_size=1)
+    _force_state_service = rospy.Service(FORCE_MISSION_STATE_SERVICE, ForceMissionState, _force_state_service_handler)
     
 
 _mission_state_pub: rospy.Publisher
 _state_machine_criteria_sub: rospy.Subscriber
+_forced_pub: rospy.Publisher
+_force_state_service: rospy.Service

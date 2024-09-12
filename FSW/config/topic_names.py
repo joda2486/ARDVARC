@@ -1,4 +1,4 @@
-# Topic names
+## --- Topic Names ---
 ANNOTATED_CAMERA_FRAMES = "camera/annotated_frames"
 CAMERA_FRAMES = "camera/frames"
 UAS_POSES = "mavros/local_position/pose"
@@ -7,6 +7,7 @@ RAW_BLUETOOTH = "bluetooth/az_els"
 UAS_TO_RGV_DIRECTION_VECTORS = "estimation/direction_vectors_uas"
 ESTIMATED_RGV_STATES = "estimation/estimated_rgv_states"
 MISSION_STATES = "state_machine/mission_states"
+FORCED_MISSION_STATE = "state_machine/forced"
 STATE_MACHINE_CRITERIA = "state_machine/state_machine_criteria"
 #TODO(LF): what is the SETPOINTS for?
 SETPOINTS = "pixhawk/setpoints"
@@ -18,6 +19,11 @@ UAS_SETPOINT_LOCAL = "mavros/setpoint_position/local"
 # Lyon used this for testing
 MAVROS_GPS_POS_FORTESTING = "mavros/global_position/global"
 
+
+## --- Service Names ---
+
 # clients/services
 CLIENT_ARMING = "/mavros/cmd/arming"
 CLIENT_SET_MODE = "/mavros/set_mode"
+
+FORCE_MISSION_STATE_SERVICE = "/state_machine/force_mission_state"
