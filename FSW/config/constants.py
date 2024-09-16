@@ -135,3 +135,13 @@ AERO_BACKYARD_APPROX_ALT = 1614.001932 # meters
 CENTER_SETPOINT = [0,0,0]
 HOME_SETPOINT = [-10,-10,0]
 
+
+"""Bluetooth"""
+# John's code (drecated by Lyon)
+# # TODO: Make sure that this is correct
+# BLUETOOTH_DCM: npt.NDArray = np.array([[.2682,.8012,-.5350],[.3590,-.5985,-.7162],[-.8940,0,-.4481]])
+
+# New assumed rotation
+# Our assumption is that to align the bluetooth with the body frame,
+# we rotate the bluetooth soc by -90 degrees about the body frame y axis
+BLUETOOTH_2_BODY_ROT = Rotation.from_rotvec([0.0, -np.pi/2, 0.0])
